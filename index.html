@@ -545,8 +545,8 @@
             <div style="width:32px;"></div> <!-- Spacer -->
         </div>
         
-        <!-- Iframe untuk menampilkan file -->
-        <iframe id="viewer-iframe" class="viewer-iframe" src="" allow="autoplay"></iframe>
+        <!-- Iframe untuk menampilkan file dengan SANDBOX agar tidak jump app -->
+        <iframe id="viewer-iframe" class="viewer-iframe" src="" allow="autoplay" sandbox="allow-scripts allow-same-origin allow-popups"></iframe>
 
         <!-- Tombol Download Floating -->
         <a id="viewer-download-btn" href="#" target="_blank" class="fab-download">
@@ -591,7 +591,7 @@
                 jadwal: "0",          
                 tugas: "1114482467",    // GID Sheet Tugas
                 materi: "1446941326",     // GANTI dengan GID Sheet Materi
-                kelompok: "702392331"    // GANTI dengan GID Sheet Kelompok
+                kelompok: "34567890"    // GANTI dengan GID Sheet Kelompok
             }
         };
 
@@ -813,10 +813,9 @@
                 else if(type.includes('ppt')) { iconName = 'presentation'; iconColor = '#e67e22'; }
                 else if(type.includes('video')) { iconName = 'play-circle'; iconColor = '#0984e3'; }
 
-                // PENTING: Kita tidak lagi pakai window.open(), tapi onclick="openDocPreview(...)"
-                // Kita encode URI agar aman saat dikirim ke fungsi
+                // PENTING: Kita escape judul untuk keamanan JS
                 const rawLink = item['Link Akses'];
-                const title = item['Nama Materi'];
+                const title = item['Nama Materi'].replace(/'/g, "\\'"); // Escape single quotes
 
                 container.innerHTML += `
                 <div class="list-item" onclick="openDocPreview('${rawLink}', '${title}')">
@@ -824,7 +823,7 @@
                         <i data-lucide="${iconName}"></i>
                     </div>
                     <div class="list-content">
-                        <h4>${title}</h4>
+                        <h4>${item['Nama Materi']}</h4>
                         <p>${item.Tipe}</p>
                     </div>
                     <i data-lucide="eye" width="16" style="opacity:0.5"></i>
@@ -833,24 +832,37 @@
             lucide.createIcons();
         }
 
-        // 3. LOGIC PREVIEW CANGGIH (Embedded)
+        // 3. LOGIC PREVIEW CANGGIH (Embedded & Fix iOS)
         function openDocPreview(rawUrl, title) {
             if (!rawUrl) return;
 
-            // Update UI Viewer
+            // Set Title
             document.getElementById('viewer-title').innerText = title;
-            document.getElementById('viewer-download-btn').href = rawUrl; // Tombol download tetap link asli
-            
-            let embedUrl = rawUrl;
 
-            // KONVERSI LINK DRIVE: dari /view ke /preview agar bisa di-embed di iframe
-            if (rawUrl.includes('drive.google.com') && rawUrl.includes('/d/')) {
-                // Hapus parameter query (seperti ?usp=sharing) dan ganti akhiran
-                // Regex: ganti /view... atau /edit... menjadi /preview
+            // --- PERBAIKAN LOGIKA DOWNLOAD & PREVIEW ---
+            let embedUrl = rawUrl;
+            let downloadUrl = rawUrl; // Default link
+
+            // Deteksi ID File Drive
+            const idMatch = rawUrl.match(/\/d\/(.*?)(?:\/|$)/);
+            if (idMatch && idMatch[1]) {
+                const fileId = idMatch[1];
+                
+                // Link Preview: Mode preview (paling aman untuk iframe)
+                embedUrl = `https://drive.google.com/file/d/${fileId}/preview`;
+                
+                // Link Download: Mode Direct Download (memaksa download)
+                // Peringatan: File besar mungkin kena virus scan warning, tapi ini standard behavior "Download"
+                downloadUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
+            } else {
+                // Fallback untuk link non-standard (misal link edit)
                 embedUrl = rawUrl.replace(/\/view.*/, '/preview').replace(/\/edit.*/, '/preview');
             }
 
-            // Set source iframe
+            // Set Link Download Button
+            document.getElementById('viewer-download-btn').href = downloadUrl;
+            
+            // Set Iframe Source
             const iframe = document.getElementById('viewer-iframe');
             iframe.src = embedUrl;
 
