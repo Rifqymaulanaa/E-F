@@ -305,6 +305,73 @@
             box-shadow: var(--shadow); cursor: pointer;
         }
 
+        /* --- DOCUMENT VIEWER (MODAL KHUSUS) --- */
+        #modal-viewer {
+            padding: 0;
+            background: #000;
+            z-index: 1000;
+        }
+        
+        .viewer-header {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 60px;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            z-index: 20;
+        }
+
+        .viewer-title {
+            color: white;
+            font-size: 0.9rem;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 60%;
+        }
+
+        .btn-viewer-close {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            color: white;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+        }
+
+        .viewer-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            padding-top: 60px; /* Space for header */
+            background: #f0f0f0;
+        }
+        
+        /* Floating Action Button untuk Download */
+        .fab-download {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            width: 56px;
+            height: 56px;
+            background: var(--accent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            z-index: 30;
+            color: #2d3436;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
         /* --- BOTTOM NAV --- */
         .bottom-nav {
             position: fixed;
@@ -445,7 +512,7 @@
         <div id="list-tugas-container">Loading...</div>
     </div>
 
-    <!-- MODAL MATERI (REVISED UX) -->
+    <!-- MODAL MATERI (NAVIGASI) -->
     <div id="modal-materi" class="modal">
         <div class="modal-header">
             <button class="btn-back" id="btn-materi-back" onclick="handleMateriBack()"><i data-lucide="arrow-left"></i></button>
@@ -468,6 +535,23 @@
         <div id="materi-content">
             <!-- Isi akan di-inject JS -->
         </div>
+    </div>
+
+    <!-- MODAL DOCUMENT VIEWER (SMART PREVIEW) -->
+    <div id="modal-viewer" class="modal">
+        <div class="viewer-header">
+            <button class="btn-viewer-close" onclick="closeModal('modal-viewer')"><i data-lucide="x"></i></button>
+            <div class="viewer-title" id="viewer-title">Judul Materi</div>
+            <div style="width:32px;"></div> <!-- Spacer -->
+        </div>
+        
+        <!-- Iframe untuk menampilkan file -->
+        <iframe id="viewer-iframe" class="viewer-iframe" src="" allow="autoplay"></iframe>
+
+        <!-- Tombol Download Floating -->
+        <a id="viewer-download-btn" href="#" target="_blank" class="fab-download">
+            <i data-lucide="download"></i>
+        </a>
     </div>
 
      <!-- MODAL KELOMPOK -->
@@ -505,7 +589,7 @@
             // Masukkan GID (Sheet ID)
             sheets: {
                 jadwal: "0",          
-                tugas: "1114482467",    // GID Sheet Tugas (Sesuai gambar kamu)
+                tugas: "1114482467",    // GID Sheet Tugas
                 materi: "1446941326",     // GANTI dengan GID Sheet Materi
                 kelompok: "702392331"    // GANTI dengan GID Sheet Kelompok
             }
@@ -651,7 +735,7 @@
             });
         }
 
-        // --- NEW MATERI LOGIC (FOLDER SYSTEM) ---
+        // --- NEW MATERI LOGIC (SMART VIEWER) ---
 
         // 1. Load Folders (Matkul) based on Semester
         function loadMateriFolders(semester, btnElement) {
@@ -720,33 +804,62 @@
             const files = db.materi.filter(m => m.Semester == semester && m['Mata Kuliah'] === matkulName);
 
             files.forEach(item => {
-                // Determine icon based on Type
+                // Determine icon
                 let iconName = 'file-text';
-                let iconColor = '#6C5CE7'; // Default Purple
+                let iconColor = '#6C5CE7'; 
                 const type = (item.Tipe || '').toLowerCase();
 
-                if(type.includes('pdf')) { iconName = 'file-text'; iconColor = '#e17055'; } // Redish
-                else if(type.includes('ppt')) { iconName = 'presentation'; iconColor = '#e67e22'; } // Orange
-                else if(type.includes('video')) { iconName = 'play-circle'; iconColor = '#0984e3'; } // Blue
+                if(type.includes('pdf')) { iconName = 'file-text'; iconColor = '#e17055'; }
+                else if(type.includes('ppt')) { iconName = 'presentation'; iconColor = '#e67e22'; }
+                else if(type.includes('video')) { iconName = 'play-circle'; iconColor = '#0984e3'; }
+
+                // PENTING: Kita tidak lagi pakai window.open(), tapi onclick="openDocPreview(...)"
+                // Kita encode URI agar aman saat dikirim ke fungsi
+                const rawLink = item['Link Akses'];
+                const title = item['Nama Materi'];
 
                 container.innerHTML += `
-                <div class="list-item" onclick="window.open('${item['Link Akses']}', '_blank')">
+                <div class="list-item" onclick="openDocPreview('${rawLink}', '${title}')">
                     <div class="list-icon" style="color:${iconColor}; background:#f1f2f6;">
                         <i data-lucide="${iconName}"></i>
                     </div>
                     <div class="list-content">
-                        <h4>${item['Nama Materi']}</h4>
+                        <h4>${title}</h4>
                         <p>${item.Tipe}</p>
                     </div>
-                    <i data-lucide="download" width="16" style="opacity:0.5"></i>
+                    <i data-lucide="eye" width="16" style="opacity:0.5"></i>
                 </div>`;
             });
             lucide.createIcons();
         }
 
+        // 3. LOGIC PREVIEW CANGGIH (Embedded)
+        function openDocPreview(rawUrl, title) {
+            if (!rawUrl) return;
+
+            // Update UI Viewer
+            document.getElementById('viewer-title').innerText = title;
+            document.getElementById('viewer-download-btn').href = rawUrl; // Tombol download tetap link asli
+            
+            let embedUrl = rawUrl;
+
+            // KONVERSI LINK DRIVE: dari /view ke /preview agar bisa di-embed di iframe
+            if (rawUrl.includes('drive.google.com') && rawUrl.includes('/d/')) {
+                // Hapus parameter query (seperti ?usp=sharing) dan ganti akhiran
+                // Regex: ganti /view... atau /edit... menjadi /preview
+                embedUrl = rawUrl.replace(/\/view.*/, '/preview').replace(/\/edit.*/, '/preview');
+            }
+
+            // Set source iframe
+            const iframe = document.getElementById('viewer-iframe');
+            iframe.src = embedUrl;
+
+            // Buka Modal Viewer
+            openModal('modal-viewer');
+        }
+
         // Handle Back Button di Modal Materi
         function handleMateriBack() {
-            // Logic handled dynamically inside loadMateriFolders & openMatkulFolder
             closeModal('modal-materi');
         }
 
@@ -770,16 +883,21 @@
             // Reset materi to default view if opening materi modal
             if(id === 'modal-materi') {
                 loadMateriFolders('1'); // Default sem 1
-                // Add active class to sem 1 btn
                 document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
                 document.querySelector('.filter-btn').classList.add('active');
             }
         }
         function closeModal(id) {
             document.getElementById(id).classList.remove('active');
+            
+            // Jika menutup viewer, kosongkan iframe agar tidak memakan memori/suara video mati
+            if(id === 'modal-viewer') {
+                document.getElementById('viewer-iframe').src = '';
+            }
         }
         function closeAllModals() {
             document.querySelectorAll('.modal').forEach(el => el.classList.remove('active'));
+            document.getElementById('viewer-iframe').src = '';
         }
 
         // Run
