@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#F8F9FD">
+    <title>E&F Class App</title>
+    
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        :root {
+            /* Palette Ungu & Kuning */
+            --primary: #6C5CE7;
+            --primary-dark: #5849c2;
+            --primary-soft: #a29bfe;
+            --accent: #FDCB6E;
+            --accent-text: #2d3436;
+            
+            --bg: #F8F9FD;
+            --card-bg: #FFFFFF;
+            --text-main: #2D3436;
+            --text-muted: #636E72;
+            
+            --radius-xl: 24px;
+            --radius-lg: 18px;
+            --radius-md: 12px;
+            
+            --shadow: 0 8px 24px -6px rgba(108, 92, 231, 0.12);
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            padding-bottom: 100px; /* Space for Bottom Nav */
+            overflow-x: hidden;
+        }
+
+        /* --- HEADER --- */
+        header {
+            padding: 20px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand img {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .brand div h1 {
+            font-size: 1.1rem;
+            font-weight: 800;
+            margin: 0;
+            color: var(--primary);
+        }
+        .brand div p {
+            font-size: 0.75rem;
+            margin: 0;
+            color: var(--text-muted);
+        }
+
+        /* --- BENTO GRID LAYOUT --- */
+        .container {
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Card Styles */
+        .bento-card {
+            background: var(--card-bg);
+            border-radius: var(--radius-xl);
+            padding: 20px;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s ease;
+            cursor: pointer;
+            border: 1px solid rgba(0,0,0,0.02);
+        }
+
+        .bento-card:active { transform: scale(0.98); }
+
+        /* Widget 1: Jadwal Hari Ini (Full Width) */
+        .card-schedule {
+            grid-column: span 2;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            min-height: 160px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        
+        .card-schedule::after {
+            content: ''; position: absolute; top: -20px; right: -20px;
+            width: 120px; height: 120px; background: rgba(255,255,255,0.1);
+            border-radius: 50%; pointer-events: none;
+        }
+
+        .schedule-badge {
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(4px);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            width: fit-content;
+        }
+
+        /* Widget 2: Deadline (Half Width) */
+        .card-task {
+            grid-column: span 1;
+            background: var(--card-bg);
+            border-top: 4px solid var(--accent);
+        }
+
+        .task-count {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--text-main);
+            margin: 5px 0;
+        }
+
+        /* Widget 3: Quick Links (Grid Kecil) */
+        .grid-links {
+            grid-column: span 2;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-top: 5px;
+        }
+        .link-item {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 15px 5px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+            color: var(--text-muted);
+            box-shadow: var(--shadow);
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-align: center;
+        }
+        .link-icon {
+            width: 36px; height: 36px;
+            background: var(--bg);
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--primary);
+        }
+
+        /* Widget 4: Materi & Kelompok */
+        .card-menu {
+            grid-column: span 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            gap: 10px;
+            height: 120px;
+        }
+        .card-menu i { color: var(--primary); }
+
+        /* --- SECTION TITLE --- */
+        .section-header {
+            grid-column: span 2;
+            margin-top: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .section-header h3 { font-size: 1rem; margin: 0; }
+        .section-header span { font-size: 0.8rem; color: var(--primary); }
+
+        /* --- LIST STYLES (Untuk Modal/Detail) --- */
+        .list-item {
+            background: white;
+            padding: 16px;
+            border-radius: var(--radius-lg);
+            margin-bottom: 12px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+            border: 1px solid #f1f1f1;
+        }
+        .list-icon {
+            width: 45px; height: 45px;
+            border-radius: 12px;
+            background: #f1f2f6;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: bold; color: var(--primary);
+            flex-shrink: 0;
+        }
+        .list-content { flex: 1; }
+        .list-content h4 { margin: 0 0 4px 0; font-size: 0.95rem; }
+        .list-content p { margin: 0; font-size: 0.8rem; color: var(--text-muted); }
+
+        /* --- MODAL (OVERLAY) --- */
+        .modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg);
+            z-index: 100;
+            padding: 20px;
+            overflow-y: auto;
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex; flex-direction: column;
+        }
+        .modal.active { transform: translateY(0); }
+        .modal-header {
+            display: flex; align-items: center; gap: 15px;
+            margin-bottom: 24px;
+            position: sticky; top: 0; background: var(--bg); z-index: 10; padding-bottom: 10px;
+        }
+        .btn-back {
+            background: white; border: none;
+            width: 40px; height: 40px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: var(--shadow); cursor: pointer;
+        }
+
+        /* --- BOTTOM NAV --- */
+        .bottom-nav {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 400px;
+            background: rgba(255,255,255,0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-around;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            z-index: 90;
+            border: 1px solid rgba(255,255,255,0.5);
+        }
+        .nav-item {
+            display: flex; flex-direction: column; align-items: center;
+            gap: 4px; color: #b2bec3; font-size: 0.7rem; font-weight: 600;
+            cursor: pointer; transition: 0.3s;
+        }
+        .nav-item.active { color: var(--primary); }
+        .nav-item.active i { fill: var(--primary-soft); }
+
+    </style>
+</head>
+<body>
+
+    <!-- HOME PAGE -->
+    <div id="page-home">
+        
+        <!-- Header -->
+        <header>
+            <div class="brand">
+                <img src="logo.png" alt="Logo" onerror="this.src='https://ui-avatars.com/api/?name=EF&background=6C5CE7&color=fff'">
+                <div>
+                    <p>Selamat Datang,</p>
+                    <h1>E&F Class App</h1>
+                </div>
+            </div>
+            <div style="background: white; padding: 8px; border-radius: 50%; box-shadow: var(--shadow);">
+                <i data-lucide="bell" width="20" color="#2D3436"></i>
+            </div>
+        </header>
+
+        <!-- Bento Grid Container -->
+        <div class="container">
+            
+            <!-- 1. JADWAL HARI INI (Big Card) -->
+            <div class="bento-card card-schedule" onclick="openModal('modal-jadwal')">
+                <div style="display:flex; justify-content:space-between;">
+                    <span class="schedule-badge" id="date-badge">...</span>
+                    <i data-lucide="arrow-up-right" color="white" width="20"></i>
+                </div>
+                <div>
+                    <h2 style="margin:0; font-size:1.4rem; line-height:1.2;" id="today-matkul">Loading...</h2>
+                    <p style="margin:5px 0 0 0; opacity:0.9; font-size:0.9rem;" id="today-detail">Mengambil data jadwal...</p>
+                </div>
+            </div>
+
+            <!-- 2. DEADLINE TUGAS (Half Card) -->
+            <div class="bento-card card-task" onclick="openModal('modal-tugas')">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:0.8rem; color:var(--text-muted); font-weight:600;">Tugas Aktif</span>
+                    <i data-lucide="alert-circle" color="#FDCB6E" width="18"></i>
+                </div>
+                <div class="task-count" id="task-counter">0</div>
+                <div style="font-size:0.75rem; color:var(--text-muted);">Ketuk untuk detail</div>
+            </div>
+
+            <!-- 3. MATERI (Half Card) -->
+            <div class="bento-card card-menu" onclick="openModal('modal-materi')">
+                <div style="background: #e0e7ff; padding:12px; border-radius:12px;">
+                    <i data-lucide="book-open" width="24"></i>
+                </div>
+                <div style="font-weight:700; font-size:0.9rem;">Materi</div>
+            </div>
+
+            <!-- 4. KELOMPOK (Half Card) -->
+            <div class="bento-card card-menu" onclick="openModal('modal-kelompok')">
+                <div style="background: #fff3cd; padding:12px; border-radius:12px;">
+                    <i data-lucide="users" width="24" color="#FDCB6E"></i>
+                </div>
+                <div style="font-weight:700; font-size:0.9rem;">Kelompok</div>
+            </div>
+
+             <!-- 5. QUICK ACCESS (Grid) -->
+             <div class="section-header">
+                <h3>Quick Access</h3>
+            </div>
+            <div class="grid-links">
+                <a href="https://bisnisdigital.unpak.ac.id/" target="_blank" class="link-item">
+                    <div class="link-icon"><i data-lucide="globe"></i></div>
+                    Prodi
+                </a>
+                <a href="https://siup.unpak.ac.id/" target="_blank" class="link-item">
+                    <div class="link-icon"><i data-lucide="graduation-cap"></i></div>
+                    SIUP
+                </a>
+                <a href="https://lms.unpak.ac.id/" target="_blank" class="link-item">
+                    <div class="link-icon"><i data-lucide="monitor-play"></i></div>
+                    LMS
+                </a>
+                <a href="https://va-bni.unpak.ac.id/" target="_blank" class="link-item">
+                    <div class="link-icon"><i data-lucide="credit-card"></i></div>
+                    Bayaran
+                </a>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- === MODALS (FULLSCREEN OVERLAYS) === -->
+
+    <!-- MODAL JADWAL -->
+    <div id="modal-jadwal" class="modal">
+        <div class="modal-header">
+            <button class="btn-back" onclick="closeModal('modal-jadwal')"><i data-lucide="arrow-left"></i></button>
+            <h2>Jadwal Lengkap</h2>
+        </div>
+        <div id="list-jadwal-container">Loading...</div>
+    </div>
+
+    <!-- MODAL TUGAS -->
+    <div id="modal-tugas" class="modal">
+        <div class="modal-header">
+            <button class="btn-back" onclick="closeModal('modal-tugas')"><i data-lucide="arrow-left"></i></button>
+            <h2>Deadline Tugas</h2>
+        </div>
+        <div id="list-tugas-container">Loading...</div>
+    </div>
+
+    <!-- MODAL MATERI -->
+    <div id="modal-materi" class="modal">
+        <div class="modal-header">
+            <button class="btn-back" onclick="closeModal('modal-materi')"><i data-lucide="arrow-left"></i></button>
+            <h2>Arsip Materi</h2>
+        </div>
+        <!-- Filter Simple -->
+        <div style="display:flex; gap:10px; margin-bottom:20px; overflow-x:auto;">
+            <button onclick="renderMateri('1')" style="padding:8px 16px; border-radius:20px; border:1px solid #ddd; background:white;">Sem 1</button>
+            <button onclick="renderMateri('2')" style="padding:8px 16px; border-radius:20px; border:1px solid #ddd; background:white;">Sem 2</button>
+            <button onclick="renderMateri('3')" style="padding:8px 16px; border-radius:20px; border:1px solid #ddd; background:white;">Sem 3</button>
+        </div>
+        <div id="list-materi-container">Pilih semester di atas.</div>
+    </div>
+
+     <!-- MODAL KELOMPOK -->
+     <div id="modal-kelompok" class="modal">
+        <div class="modal-header">
+            <button class="btn-back" onclick="closeModal('modal-kelompok')"><i data-lucide="arrow-left"></i></button>
+            <h2>Data Kelompok</h2>
+        </div>
+        <div id="list-kelompok-container">Loading...</div>
+    </div>
+
+    <!-- BOTTOM NAV -->
+    <nav class="bottom-nav">
+        <div class="nav-item active" onclick="closeAllModals()">
+            <i data-lucide="home" width="20"></i>
+            <span>Home</span>
+        </div>
+        <div class="nav-item" onclick="openModal('modal-jadwal')">
+            <i data-lucide="calendar" width="20"></i>
+            <span>Jadwal</span>
+        </div>
+        <div class="nav-item" onclick="openModal('modal-tugas')">
+            <i data-lucide="check-square" width="20"></i>
+            <span>Tugas</span>
+        </div>
+    </nav>
+
+    <script>
+        lucide.createIcons();
+
+        // --- KONFIGURASI (GANTI BAGIAN INI) ---
+        const CONFIG = {
+            // URL CSV dari Publish to Web
+            csvUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRcV7ShJedcvyA34Z0oqOIvcuII4YV0ANqbotmUPrrQt3wtVGBXXhTfiChoBXFykv5nEsYqFHsvEVjm/pub?output=csv",
+            // Masukkan GID (Sheet ID)
+            sheets: {
+                jadwal: "0",          // Biasanya Sheet1
+                tugas: "1114482467",    // GANTI DENGAN GID SHEET TUGAS
+                materi: "23456789",   // GANTI DENGAN GID SHEET MATERI
+                kelompok: "34567890"  // GANTI DENGAN GID SHEET KELOMPOK
+            }
+        };
+
+        let db = { jadwal: [], tugas: [], materi: [], kelompok: [] };
+
+        // --- FETCHING DATA ---
+        async function initApp() {
+            setTodayDate();
+            
+            // 1. Fetch Jadwal
+            db.jadwal = await fetchData(CONFIG.sheets.jadwal);
+            updateHomeSchedule();
+            renderJadwalList();
+
+            // 2. Fetch Tugas
+            // Gunakan try-catch agar app tetap jalan meski GID tugas belum diganti user
+            try {
+                db.tugas = await fetchData(CONFIG.sheets.tugas);
+                updateHomeTaskCount();
+                renderTugasList();
+            } catch (e) { console.warn("Tugas not loaded"); }
+
+            // 3. Fetch Lainnya (Lazy load)
+            try { db.materi = await fetchData(CONFIG.sheets.materi); } catch(e){}
+            try { db.kelompok = await fetchData(CONFIG.sheets.kelompok); renderKelompokList(); } catch(e){}
+        }
+
+        async function fetchData(gid) {
+            const res = await fetch(`${CONFIG.csvUrl}&gid=${gid}`);
+            const text = await res.text();
+            return parseCSV(text);
+        }
+
+        function parseCSV(text) {
+            const rows = text.split('\n').filter(r => r.trim() !== '');
+            const headers = rows[0].split(',').map(h => h.trim().replace(/"/g, ''));
+            return rows.slice(1).map(row => {
+                const values = row.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || [];
+                // Fallback split simple jika regex gagal di browser lama
+                const simpleVals = row.split(','); 
+                let obj = {};
+                headers.forEach((h, i) => {
+                    let val = values[i] ? values[i].replace(/^"|"$/g, '').trim() : (simpleVals[i] || '');
+                    obj[h] = val;
+                });
+                return obj;
+            });
+        }
+
+        // --- LOGIC TAMPILAN ---
+
+        function setTodayDate() {
+            const options = { weekday: 'long', day: 'numeric', month: 'short' };
+            const dateStr = new Date().toLocaleDateString('id-ID', options);
+            document.getElementById('date-badge').innerText = dateStr;
+        }
+
+        function updateHomeSchedule() {
+            const days = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+            const todayName = days[new Date().getDay()];
+            
+            // Filter jadwal sesuai hari ini (kolom HARI di sheet)
+            const todayClasses = db.jadwal.filter(j => j.HARI && j.HARI.toLowerCase() === todayName.toLowerCase());
+
+            const titleEl = document.getElementById('today-matkul');
+            const descEl = document.getElementById('today-detail');
+
+            if (todayName === 'Minggu') {
+                titleEl.innerText = "Happy Weekend! 🌴";
+                descEl.innerText = "Tidak ada jadwal kuliah hari ini.";
+            } else if (todayClasses.length > 0) {
+                // Ambil kelas pertama hari ini
+                const first = todayClasses[0];
+                titleEl.innerText = first['MATA KULIAH'] || "Kuliah";
+                descEl.innerText = `${first.JAM} • ${first.RUANG}`;
+            } else {
+                titleEl.innerText = "Tidak Ada Kelas";
+                descEl.innerText = "Hari ini kosong.";
+            }
+        }
+
+        function updateHomeTaskCount() {
+            // Hitung tugas yang statusnya Aktif
+            const activeTasks = db.tugas.filter(t => t.STATUS && t.STATUS.toLowerCase() === 'aktif');
+            document.getElementById('task-counter').innerText = activeTasks.length;
+        }
+
+        // --- RENDER LISTS (MODAL CONTENT) ---
+
+        function renderJadwalList() {
+            const container = document.getElementById('list-jadwal-container');
+            container.innerHTML = '';
+            
+            // Group by Hari? Atau list flat aja
+            db.jadwal.forEach(item => {
+                if(!item['MATA KULIAH']) return;
+                container.innerHTML += `
+                <div class="list-item">
+                    <div class="list-icon" style="background:#e0e7ff; color:var(--primary); font-size:0.8rem;">
+                        ${item.HARI ? item.HARI.substring(0,3) : 'Sen'}
+                    </div>
+                    <div class="list-content">
+                        <h4>${item['MATA KULIAH']}</h4>
+                        <p>${item.JAM} • ${item.RUANG} • ${item.DOSEN || ''}</p>
+                    </div>
+                </div>`;
+            });
+        }
+
+        function renderTugasList() {
+            const container = document.getElementById('list-tugas-container');
+            container.innerHTML = '';
+            
+            const activeTasks = db.tugas.filter(t => t.STATUS && t.STATUS.toLowerCase() === 'aktif');
+
+            if(activeTasks.length === 0) {
+                container.innerHTML = `<div style="text-align:center; padding:20px; color:#aaa;">Hore! Tidak ada tugas.</div>`;
+                return;
+            }
+
+            activeTasks.forEach(item => {
+                container.innerHTML += `
+                <div class="list-item" style="border-left:4px solid var(--accent);">
+                    <div class="list-content">
+                        <div style="display:flex; justify-content:space-between;">
+                            <h4>${item['MATA KULIAH']}</h4>
+                            <span style="font-size:0.75rem; color:#e17055; font-weight:bold;">${item.DEADLINE}</span>
+                        </div>
+                        <p style="margin-top:4px;">${item['JUDUL TUGAS']}</p>
+                        <a href="${item['LINK PENGUMPULAN']}" target="_blank" 
+                           style="display:inline-block; margin-top:8px; background:var(--primary); color:white; text-decoration:none; padding:6px 12px; border-radius:6px; font-size:0.8rem;">
+                           Kumpulkan Tugas
+                        </a>
+                    </div>
+                </div>`;
+            });
+        }
+
+        function renderMateri(semester) {
+            const container = document.getElementById('list-materi-container');
+            container.innerHTML = '';
+            
+            // Filter by Semester (Pastikan kolom di sheet bernama "Semester")
+            const filtered = db.materi.filter(m => m.Semester == semester);
+            
+            if(filtered.length === 0) {
+                container.innerHTML = `<p style="text-align:center; color:#aaa;">Belum ada materi untuk Semester ${semester}</p>`;
+                return;
+            }
+
+            filtered.forEach(item => {
+                container.innerHTML += `
+                <div class="list-item" onclick="window.open('${item['Link Akses']}', '_blank')">
+                    <div class="list-icon"><i data-lucide="file-text"></i></div>
+                    <div class="list-content">
+                        <h4>${item['Nama Materi']}</h4>
+                        <p>${item['Mata Kuliah']} (${item.Tipe})</p>
+                    </div>
+                    <i data-lucide="download" width="16" style="opacity:0.5"></i>
+                </div>`;
+            });
+            lucide.createIcons();
+        }
+
+        function renderKelompokList() {
+            const container = document.getElementById('list-kelompok-container');
+            container.innerHTML = '';
+            
+            db.kelompok.forEach(item => {
+                container.innerHTML += `
+                <div class="list-item" style="display:block;">
+                    <h4 style="color:var(--primary); margin-bottom:5px;">${item['Mata Kuliah']} - ${item['Nama Kelompok']}</h4>
+                    <p style="line-height:1.5;">${item['Daftar Anggota']}</p>
+                </div>`;
+            });
+        }
+
+
+        // --- INTERAKSI MODAL ---
+        function openModal(id) {
+            document.getElementById(id).classList.add('active');
+        }
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+        function closeAllModals() {
+            document.querySelectorAll('.modal').forEach(el => el.classList.remove('active'));
+        }
+
+        // Run
+        initApp();
+    </script>
+</body>
+</html>
