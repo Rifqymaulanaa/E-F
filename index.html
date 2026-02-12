@@ -3,11 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="theme-color" content="#F8F9FD">
     <title>E&F Class App</title>
     
-    <!-- Fonts & Icons -->
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="apple-touch-icon" href="logo.png">
+    <link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjoiRSZGIENsYXNzIiwiYmFja2dyb3VuZF9jb2xvciI6IiNGRkZGRkYiLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsImljb25zIjpbeyJzcmMiOiJsb2dvLnBuZyIsInNpemVzIjoiMTkyeDE5MiIsInR5cGUiOiJpbWFnZS9wbmcifV19">
+    
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     
@@ -18,7 +23,6 @@
             --primary-dark: #5849c2;
             --primary-soft: #a29bfe;
             --accent: #FDCB6E;
-            --accent-text: #2d3436;
             
             --bg: #F8F9FD;
             --card-bg: #FFFFFF;
@@ -30,6 +34,8 @@
             --radius-md: 12px;
             
             --shadow: 0 8px 24px -6px rgba(108, 92, 231, 0.12);
+            --header-height: 80px;
+            --nav-height: 90px;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -40,20 +46,48 @@
             color: var(--text-main);
             margin: 0;
             padding: 0;
-            padding-bottom: 100px; /* Space for Bottom Nav */
-            overflow-x: hidden;
+            overflow: hidden; /* Mencegah body scroll, scroll hanya di main */
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
 
-        /* --- HEADER --- */
+        /* --- SPLASH SCREEN --- */
+        #splash-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #ffffff;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.5s ease-out, visibility 0.5s;
+        }
+        .splash-logo {
+            width: 100px;
+            height: 100px;
+            object-fit: contain;
+            animation: bounceIn 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite alternate;
+        }
+        @keyframes bounceIn {
+            0% { transform: scale(0.9); opacity: 0.8; }
+            100% { transform: scale(1.1); opacity: 1; }
+        }
+
+        /* --- GLOBAL HEADER (FIXED) --- */
         header {
-            padding: 20px 24px;
+            height: var(--header-height);
+            padding: 0 24px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: var(--bg);
-            position: sticky;
-            top: 0;
+            background: rgba(248, 249, 253, 0.95);
+            backdrop-filter: blur(10px);
+            position: fixed;
+            top: 0; left: 0; right: 0;
             z-index: 50;
+            transition: all 0.3s ease;
         }
 
         .brand {
@@ -62,13 +96,15 @@
             gap: 12px;
         }
 
+        /* REVISI: Logo tanpa frame/border */
         .brand img {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid white;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            width: 48px;
+            height: 48px;
+            object-fit: contain; /* Agar logo PNG proporsional */
+            border-radius: 0;
+            border: none;
+            box-shadow: none;
+            background: transparent;
         }
 
         .brand div h1 {
@@ -83,17 +119,37 @@
             color: var(--text-muted);
         }
 
-        /* --- BENTO GRID LAYOUT --- */
-        .container {
-            padding: 0 20px;
+        /* --- MAIN CONTENT AREA (SCROLLABLE) --- */
+        main {
+            flex: 1;
+            overflow-y: auto;
+            margin-top: var(--header-height);
+            padding-bottom: calc(var(--nav-height) + 20px); /* Space for Bottom Nav */
+            scroll-behavior: smooth;
+        }
+
+        /* Pages System */
+        .page {
+            display: none;
+            padding: 10px 20px;
+            max-width: 600px;
+            margin: 0 auto;
+            animation: fadeIn 0.3s ease;
+        }
+        .page.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- BENTO COMPONENTS --- */
+        .container-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 15px;
-            max-width: 600px;
-            margin: 0 auto;
         }
 
-        /* Card Styles */
         .bento-card {
             background: var(--card-bg);
             border-radius: var(--radius-xl);
@@ -105,10 +161,9 @@
             cursor: pointer;
             border: 1px solid rgba(0,0,0,0.02);
         }
-
         .bento-card:active { transform: scale(0.98); }
 
-        /* Widget 1: Jadwal Hari Ini (Full Width) */
+        /* Card: Jadwal Hari Ini */
         .card-schedule {
             grid-column: span 2;
             background: linear-gradient(135deg, var(--primary), var(--primary-dark));
@@ -118,13 +173,11 @@
             flex-direction: column;
             justify-content: space-between;
         }
-        
         .card-schedule::after {
             content: ''; position: absolute; top: -20px; right: -20px;
             width: 120px; height: 120px; background: rgba(255,255,255,0.1);
             border-radius: 50%; pointer-events: none;
         }
-
         .schedule-badge {
             background: rgba(255,255,255,0.2);
             backdrop-filter: blur(4px);
@@ -135,13 +188,12 @@
             width: fit-content;
         }
 
-        /* Widget 2: Deadline (Half Width) */
+        /* Card: Deadline */
         .card-task {
             grid-column: span 1;
             background: var(--card-bg);
             border-top: 4px solid var(--accent);
         }
-
         .task-count {
             font-size: 2.5rem;
             font-weight: 800;
@@ -149,63 +201,37 @@
             margin: 5px 0;
         }
 
-        /* Widget 3: Quick Links (Grid Kecil) */
-        .grid-links {
-            grid-column: span 2;
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-            margin-top: 5px;
-        }
-        .link-item {
-            background: white;
-            border-radius: var(--radius-lg);
-            padding: 15px 5px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            text-decoration: none;
-            color: var(--text-muted);
-            box-shadow: var(--shadow);
-            font-size: 0.7rem;
-            font-weight: 600;
-            text-align: center;
-        }
-        .link-icon {
-            width: 36px; height: 36px;
-            background: var(--bg);
-            border-radius: 12px;
-            display: flex; align-items: center; justify-content: center;
-            color: var(--primary);
-        }
-
-        /* Widget 4: Materi & Kelompok */
+        /* Card: Menu Kecil */
         .card-menu {
             grid-column: span 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            gap: 10px;
-            height: 120px;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            text-align: center; gap: 10px; height: 120px;
         }
-        .card-menu i { color: var(--primary); }
 
-        /* --- SECTION TITLE --- */
+        /* Quick Access Grid */
         .section-header {
-            grid-column: span 2;
-            margin-top: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            grid-column: span 2; margin-top: 10px;
+            display: flex; justify-content: space-between; align-items: center;
         }
         .section-header h3 { font-size: 1rem; margin: 0; }
-        .section-header span { font-size: 0.8rem; color: var(--primary); }
 
-        /* --- LIST STYLES (Untuk Modal/Detail) --- */
+        .grid-links {
+            grid-column: span 2;
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 5px;
+        }
+        .link-item {
+            background: white; border-radius: var(--radius-lg); padding: 15px 5px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            gap: 8px; text-decoration: none; color: var(--text-muted);
+            box-shadow: var(--shadow); font-size: 0.7rem; font-weight: 600; text-align: center;
+        }
+        .link-icon {
+            width: 36px; height: 36px; background: var(--bg); border-radius: 12px;
+            display: flex; align-items: center; justify-content: center; color: var(--primary);
+        }
+
+        /* --- LIST STYLES (Jadwal, Tugas, dll) --- */
         .list-item {
             background: white;
             padding: 16px;
@@ -213,12 +239,12 @@
             margin-bottom: 12px;
             display: flex;
             gap: 12px;
-            align-items: center;
+            align-items: flex-start; /* Ubah ke flex-start agar ikon tetap di atas jika teks panjang */
             box-shadow: 0 2px 10px rgba(0,0,0,0.03);
             border: 1px solid #f1f1f1;
             transition: 0.2s;
         }
-        .list-item:active { transform: scale(0.98); background: #f8f9fd; }
+        .list-item:active { transform: scale(0.99); background: #f8f9fd; }
         
         .list-icon {
             width: 45px; height: 45px;
@@ -228,42 +254,42 @@
             font-weight: bold; color: var(--primary);
             flex-shrink: 0;
         }
-        .list-content { flex: 1; }
-        .list-content h4 { margin: 0 0 4px 0; font-size: 0.95rem; }
-        .list-content p { margin: 0; font-size: 0.8rem; color: var(--text-muted); }
+        .list-content { flex: 1; min-width: 0; /* Penting untuk text-overflow */ }
+        
+        /* REVISI: Text Handling */
+        .list-content h4 { 
+            margin: 0 0 4px 0; 
+            font-size: 0.95rem; 
+            line-height: 1.4;
+            /* Tampilkan penuh, tapi jika > 3 baris pakai ellipsis */
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .list-content p { 
+            margin: 0; 
+            font-size: 0.8rem; 
+            color: var(--text-muted); 
+            line-height: 1.4;
+            white-space: normal; /* Pastikan text wrap */
+        }
 
-        /* Style Khusus Folder Materi */
+        /* --- FOLDER SYSTEM (MATERI) --- */
         .folder-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            padding-bottom: 20px;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding-bottom: 20px;
         }
         .folder-card {
-            background: white;
-            border: 1px solid #f1f1f1;
-            padding: 16px;
-            border-radius: 16px;
-            text-align: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.02);
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
+            background: white; border: 1px solid #f1f1f1; padding: 16px; border-radius: 16px;
+            text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.02); cursor: pointer;
+            display: flex; flex-direction: column; align-items: center; gap: 10px;
         }
         .folder-card:active { background: #f8f9fd; transform: scale(0.98); }
         .folder-icon {
-            width: 50px; height: 50px;
-            background: #fff3cd; /* Kuning folder */
-            border-radius: 12px;
-            display: flex; align-items: center; justify-content: center;
-            color: #d4a017;
+            width: 50px; height: 50px; background: #fff3cd; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center; color: #d4a017;
         }
-        .folder-name {
-            font-size: 0.85rem; font-weight: 600; color: var(--text-main);
-            line-height: 1.3;
-        }
+        .folder-name { font-size: 0.85rem; font-weight: 600; color: var(--text-main); line-height: 1.3; }
         .folder-info { font-size: 0.7rem; color: var(--text-muted); }
 
         /* Filter Tabs */
@@ -280,99 +306,13 @@
             background: var(--primary); color: white; border-color: var(--primary);
         }
 
-        /* --- MODAL (OVERLAY) --- */
-        .modal {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--bg);
-            z-index: 100;
-            padding: 20px;
-            overflow-y: auto;
-            transform: translateY(100%);
-            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            display: flex; flex-direction: column;
-        }
-        .modal.active { transform: translateY(0); }
-        .modal-header {
-            display: flex; align-items: center; gap: 15px;
-            margin-bottom: 24px;
-            position: sticky; top: 0; background: var(--bg); z-index: 10; padding-bottom: 10px;
-        }
-        .btn-back {
-            background: white; border: none;
-            width: 40px; height: 40px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: var(--shadow); cursor: pointer;
+        /* Breadcrumb */
+        .materi-breadcrumb {
+            font-size: 0.8rem; color: var(--text-muted); margin-bottom: 15px;
+            display: flex; align-items: center; gap: 5px; cursor: pointer;
         }
 
-        /* --- DOCUMENT VIEWER (MODAL KHUSUS) --- */
-        #modal-viewer {
-            padding: 0;
-            background: #000;
-            z-index: 1000;
-        }
-        
-        .viewer-header {
-            position: absolute;
-            top: 0; left: 0; right: 0;
-            height: 60px;
-            background: rgba(0,0,0,0.8);
-            backdrop-filter: blur(10px);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 20px;
-            z-index: 20;
-        }
-
-        .viewer-title {
-            color: white;
-            font-size: 0.9rem;
-            font-weight: 600;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 60%;
-        }
-
-        .btn-viewer-close {
-            background: rgba(255,255,255,0.2);
-            border: none;
-            width: 32px; height: 32px;
-            border-radius: 50%;
-            color: white;
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer;
-        }
-
-        .viewer-iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-            padding-top: 60px; /* Space for header */
-            background: #f0f0f0;
-        }
-        
-        /* Floating Action Button untuk Download */
-        .fab-download {
-            position: absolute;
-            bottom: 30px;
-            right: 30px;
-            width: 56px;
-            height: 56px;
-            background: var(--accent);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            z-index: 30;
-            color: #2d3436;
-            cursor: pointer;
-            text-decoration: none;
-        }
-
-        /* --- BOTTOM NAV --- */
+        /* --- BOTTOM NAV (FIXED) --- */
         .bottom-nav {
             position: fixed;
             bottom: 20px;
@@ -387,7 +327,7 @@
             display: flex;
             justify-content: space-around;
             box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-            z-index: 90;
+            z-index: 100;
             border: 1px solid rgba(255,255,255,0.5);
         }
         .nav-item {
@@ -395,237 +335,257 @@
             gap: 4px; color: #b2bec3; font-size: 0.7rem; font-weight: 600;
             cursor: pointer; transition: 0.3s;
         }
-        .nav-item.active { color: var(--primary); }
+        .nav-item.active { color: var(--primary); transform: translateY(-2px); }
         .nav-item.active i { fill: var(--primary-soft); }
 
-        /* Helper untuk Breadcrumb Materi */
-        .materi-breadcrumb {
-            font-size: 0.8rem; color: var(--text-muted); margin-bottom: 15px;
-            display: flex; align-items: center; gap: 5px;
+        /* --- VIEWER MODAL (Full Screen Overlay khusus preview) --- */
+        #modal-viewer {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 2000; display: none;
+            flex-direction: column;
+        }
+        #modal-viewer.active { display: flex; animation: slideUp 0.3s; }
+        @keyframes slideUp { from {transform: translateY(100%);} to {transform: translateY(0);} }
+        
+        .viewer-header {
+            height: 60px; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px);
+            display: flex; align-items: center; justify-content: space-between; padding: 0 20px;
+            color: white;
+        }
+        .viewer-iframe { flex: 1; border: none; background: #f0f0f0; }
+        .fab-download {
+            position: absolute; bottom: 30px; right: 30px;
+            width: 56px; height: 56px; background: var(--accent);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3); z-index: 30; color: #2d3436;
         }
 
     </style>
 </head>
 <body>
 
-    <!-- HOME PAGE -->
-    <div id="page-home">
+    <div id="splash-screen">
+        <img src="logo.png" alt="Loading..." class="splash-logo" onerror="this.src='https://ui-avatars.com/api/?name=EF&background=6C5CE7&color=fff&size=128'">
+    </div>
+
+    <header id="app-header">
+        <div class="brand">
+            <img src="logo.png" alt="Logo" onerror="this.src='https://ui-avatars.com/api/?name=EF&background=6C5CE7&color=fff'">
+            <div>
+                <p>Selamat Datang,</p>
+                <h1 id="header-title">E&F Class App</h1>
+            </div>
+        </div>
+        <div style="background: white; padding: 8px; border-radius: 50%; box-shadow: var(--shadow);">
+            <i data-lucide="bell" width="20" color="#2D3436"></i>
+        </div>
+    </header>
+
+    <main id="main-content">
         
-        <!-- Header -->
-        <header>
-            <div class="brand">
-                <img src="logo.png" alt="Logo" onerror="this.src='https://ui-avatars.com/api/?name=EF&background=6C5CE7&color=fff'">
-                <div>
-                    <p>Welcome...</p>
-                    <h1>E&F Class App</h1>
+        <section id="page-home" class="page active">
+            <div class="container-grid">
+                <div class="bento-card card-schedule" onclick="switchPage('page-jadwal')">
+                    <div style="display:flex; justify-content:space-between;">
+                        <span class="schedule-badge" id="date-badge">...</span>
+                        <i data-lucide="arrow-up-right" color="white" width="20"></i>
+                    </div>
+                    <div>
+                        <h2 style="margin:0; font-size:1.4rem; line-height:1.2;" id="today-matkul">Loading...</h2>
+                        <p style="margin:5px 0 0 0; opacity:0.9; font-size:0.9rem;" id="today-detail">Mengambil data jadwal...</p>
+                    </div>
+                </div>
+
+                <div class="bento-card card-task" onclick="switchPage('page-tugas')">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:0.8rem; color:var(--text-muted); font-weight:600;">Tugas Aktif</span>
+                        <i data-lucide="alert-circle" color="#FDCB6E" width="18"></i>
+                    </div>
+                    <div class="task-count" id="task-counter">0</div>
+                    <div style="font-size:0.75rem; color:var(--text-muted);">Ketuk untuk detail</div>
+                </div>
+
+                <div class="bento-card card-menu" onclick="switchPage('page-materi')">
+                    <div style="background: #e0e7ff; padding:12px; border-radius:12px;">
+                        <i data-lucide="book-open" width="24"></i>
+                    </div>
+                    <div style="font-weight:700; font-size:0.9rem;">Materi</div>
+                </div>
+
+                <div class="bento-card card-menu" onclick="switchPage('page-kelompok')">
+                    <div style="background: #fff3cd; padding:12px; border-radius:12px;">
+                        <i data-lucide="users" width="24" color="#FDCB6E"></i>
+                    </div>
+                    <div style="font-weight:700; font-size:0.9rem;">Kelompok</div>
+                </div>
+
+                <div class="section-header">
+                    <h3>Quick Access</h3>
+                </div>
+                <div class="grid-links">
+                    <a href="https://bisnisdigital.unpak.ac.id/" target="_blank" class="link-item">
+                        <div class="link-icon"><i data-lucide="globe"></i></div>
+                        Prodi
+                    </a>
+                    <a href="https://siup.unpak.ac.id/" target="_blank" class="link-item">
+                        <div class="link-icon"><i data-lucide="graduation-cap"></i></div>
+                        SIUP
+                    </a>
+                    <a href="https://lms.unpak.ac.id/" target="_blank" class="link-item">
+                        <div class="link-icon"><i data-lucide="monitor-play"></i></div>
+                        LMS
+                    </a>
+                    <a href="https://va-bni.unpak.ac.id/" target="_blank" class="link-item">
+                        <div class="link-icon"><i data-lucide="credit-card"></i></div>
+                        Bayaran
+                    </a>
                 </div>
             </div>
-            <div style="background: white; padding: 8px; border-radius: 50%; box-shadow: var(--shadow);">
-                <i data-lucide="bell" width="20" color="#2D3436"></i>
-            </div>
-        </header>
+        </section>
 
-        <!-- Bento Grid Container -->
-        <div class="container">
-            
-            <!-- 1. JADWAL HARI INI (Big Card) -->
-            <div class="bento-card card-schedule" onclick="openModal('modal-jadwal')">
-                <div style="display:flex; justify-content:space-between;">
-                    <span class="schedule-badge" id="date-badge">...</span>
-                    <i data-lucide="arrow-up-right" color="white" width="20"></i>
-                </div>
-                <div>
-                    <h2 style="margin:0; font-size:1.4rem; line-height:1.2;" id="today-matkul">Loading...</h2>
-                    <p style="margin:5px 0 0 0; opacity:0.9; font-size:0.9rem;" id="today-detail">Mengambil data jadwal...</p>
-                </div>
+        <section id="page-jadwal" class="page">
+            <div style="margin-bottom:15px; display:flex; align-items:center; gap:10px;">
+                <button onclick="switchPage('page-home')" style="border:none; background:white; padding:8px; border-radius:50%; box-shadow:var(--shadow); display:flex;"><i data-lucide="arrow-left" width="18"></i></button>
+                <h2 style="margin:0; font-size:1.2rem;">Jadwal Lengkap</h2>
             </div>
+            <div id="list-jadwal-container">Loading...</div>
+        </section>
 
-            <!-- 2. DEADLINE TUGAS (Half Card) -->
-            <div class="bento-card card-task" onclick="openModal('modal-tugas')">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span style="font-size:0.8rem; color:var(--text-muted); font-weight:600;">Tugas Aktif</span>
-                    <i data-lucide="alert-circle" color="#FDCB6E" width="18"></i>
-                </div>
-                <div class="task-count" id="task-counter">0</div>
-                <div style="font-size:0.75rem; color:var(--text-muted);">Ketuk untuk detail</div>
+        <section id="page-tugas" class="page">
+             <div style="margin-bottom:15px; display:flex; align-items:center; gap:10px;">
+                <button onclick="switchPage('page-home')" style="border:none; background:white; padding:8px; border-radius:50%; box-shadow:var(--shadow); display:flex;"><i data-lucide="arrow-left" width="18"></i></button>
+                <h2 style="margin:0; font-size:1.2rem;">Daftar Tugas</h2>
+            </div>
+            <div id="list-tugas-container">Loading...</div>
+        </section>
+
+        <section id="page-materi" class="page">
+            <div style="margin-bottom:15px; display:flex; align-items:center; gap:10px;">
+                <button id="btn-materi-back" onclick="handleMateriBack()" style="border:none; background:white; padding:8px; border-radius:50%; box-shadow:var(--shadow); display:flex;"><i data-lucide="arrow-left" width="18"></i></button>
+                <h2 style="margin:0; font-size:1.2rem;">Arsip Materi</h2>
             </div>
 
-            <!-- 3. MATERI (Half Card) -->
-            <div class="bento-card card-menu" onclick="openModal('modal-materi')">
-                <div style="background: #e0e7ff; padding:12px; border-radius:12px;">
-                    <i data-lucide="book-open" width="24"></i>
-                </div>
-                <div style="font-weight:700; font-size:0.9rem;">Materi</div>
+             <div id="materi-filters" class="filter-tabs">
+                <button class="filter-btn active" onclick="loadMateriFolders('1', this)">Semester 1</button>
+                <button class="filter-btn" onclick="loadMateriFolders('2', this)">Semester 2</button>
+                <button class="filter-btn" onclick="loadMateriFolders('3', this)">Semester 3</button>
             </div>
 
-            <!-- 4. KELOMPOK (Half Card) -->
-            <div class="bento-card card-menu" onclick="openModal('modal-kelompok')">
-                <div style="background: #fff3cd; padding:12px; border-radius:12px;">
-                    <i data-lucide="users" width="24" color="#FDCB6E"></i>
-                </div>
-                <div style="font-weight:700; font-size:0.9rem;">Kelompok</div>
+            <div id="materi-crumb" class="materi-breadcrumb" style="display:none;" onclick="handleMateriBack()">
+                <span>Materi</span> <i data-lucide="chevron-right" width="14"></i> <span id="crumb-folder" style="color:var(--primary); font-weight:600;">...</span>
             </div>
 
-             <!-- 5. QUICK ACCESS (Grid) -->
-             <div class="section-header">
-                <h3>Quick Access</h3>
+            <div id="materi-content">Loading...</div>
+        </section>
+
+        <section id="page-kelompok" class="page">
+            <div style="margin-bottom:15px; display:flex; align-items:center; gap:10px;">
+                <button onclick="switchPage('page-home')" style="border:none; background:white; padding:8px; border-radius:50%; box-shadow:var(--shadow); display:flex;"><i data-lucide="arrow-left" width="18"></i></button>
+                <h2 style="margin:0; font-size:1.2rem;">Data Kelompok</h2>
             </div>
-            <div class="grid-links">
-                <a href="https://bisnisdigital.unpak.ac.id/" target="_blank" class="link-item">
-                    <div class="link-icon"><i data-lucide="globe"></i></div>
-                    Prodi
-                </a>
-                <a href="https://siup.unpak.ac.id/" target="_blank" class="link-item">
-                    <div class="link-icon"><i data-lucide="graduation-cap"></i></div>
-                    SIUP
-                </a>
-                <a href="https://lms.unpak.ac.id/" target="_blank" class="link-item">
-                    <div class="link-icon"><i data-lucide="monitor-play"></i></div>
-                    LMS
-                </a>
-                <a href="https://va-bni.unpak.ac.id/" target="_blank" class="link-item">
-                    <div class="link-icon"><i data-lucide="credit-card"></i></div>
-                    Bayaran
-                </a>
-            </div>
+            <div id="list-kelompok-container">Loading...</div>
+        </section>
 
-        </div>
-    </div>
+    </main>
 
-    <!-- === MODALS (FULLSCREEN OVERLAYS) === -->
-
-    <!-- MODAL JADWAL -->
-    <div id="modal-jadwal" class="modal">
-        <div class="modal-header">
-            <button class="btn-back" onclick="closeModal('modal-jadwal')"><i data-lucide="arrow-left"></i></button>
-            <h2>Jadwal Lengkap</h2>
-        </div>
-        <div id="list-jadwal-container">Loading...</div>
-    </div>
-
-    <!-- MODAL TUGAS -->
-    <div id="modal-tugas" class="modal">
-        <div class="modal-header">
-            <button class="btn-back" onclick="closeModal('modal-tugas')"><i data-lucide="arrow-left"></i></button>
-            <h2>Deadline Tugas</h2>
-        </div>
-        <div id="list-tugas-container">Loading...</div>
-    </div>
-
-    <!-- MODAL MATERI (NAVIGASI) -->
-    <div id="modal-materi" class="modal">
-        <div class="modal-header">
-            <button class="btn-back" id="btn-materi-back" onclick="handleMateriBack()"><i data-lucide="arrow-left"></i></button>
-            <h2 id="materi-title">Arsip Materi</h2>
-        </div>
-        
-        <!-- Filter Semester Tabs -->
-        <div id="materi-filters" class="filter-tabs">
-            <button class="filter-btn active" onclick="loadMateriFolders('1', this)">Semester 1</button>
-            <button class="filter-btn" onclick="loadMateriFolders('2', this)">Semester 2</button>
-            <button class="filter-btn" onclick="loadMateriFolders('3', this)">Semester 3</button>
-        </div>
-
-        <!-- Breadcrumb (Navigasi Kecil) -->
-        <div id="materi-crumb" class="materi-breadcrumb" style="display:none;">
-            <span>Materi</span> <i data-lucide="chevron-right" width="14"></i> <span id="crumb-folder">...</span>
-        </div>
-
-        <!-- Container untuk List Folder / File -->
-        <div id="materi-content">
-            <!-- Isi akan di-inject JS -->
-        </div>
-    </div>
-
-    <!-- MODAL DOCUMENT VIEWER (SMART PREVIEW) -->
-    <div id="modal-viewer" class="modal">
-        <div class="viewer-header">
-            <button class="btn-viewer-close" onclick="closeModal('modal-viewer')"><i data-lucide="x"></i></button>
-            <div class="viewer-title" id="viewer-title">Judul Materi</div>
-            <div style="width:32px;"></div> <!-- Spacer -->
-        </div>
-        
-        <!-- Iframe untuk menampilkan file dengan SANDBOX agar tidak jump app -->
-        <iframe id="viewer-iframe" class="viewer-iframe" src="" allow="autoplay" sandbox="allow-scripts allow-same-origin allow-popups"></iframe>
-
-        <!-- Tombol Download Floating -->
-        <a id="viewer-download-btn" href="#" target="_blank" class="fab-download">
-            <i data-lucide="download"></i>
-        </a>
-    </div>
-
-     <!-- MODAL KELOMPOK -->
-     <div id="modal-kelompok" class="modal">
-        <div class="modal-header">
-            <button class="btn-back" onclick="closeModal('modal-kelompok')"><i data-lucide="arrow-left"></i></button>
-            <h2>Data Kelompok</h2>
-        </div>
-        <div id="list-kelompok-container">Loading...</div>
-    </div>
-
-    <!-- BOTTOM NAV -->
     <nav class="bottom-nav">
-        <div class="nav-item active" onclick="closeAllModals()">
+        <div class="nav-item active" id="nav-home" onclick="switchPage('page-home')">
             <i data-lucide="home" width="20"></i>
             <span>Home</span>
         </div>
-        <div class="nav-item" onclick="openModal('modal-jadwal')">
+        <div class="nav-item" id="nav-jadwal" onclick="switchPage('page-jadwal')">
             <i data-lucide="calendar" width="20"></i>
             <span>Jadwal</span>
         </div>
-        <div class="nav-item" onclick="openModal('modal-tugas')">
+        <div class="nav-item" id="nav-tugas" onclick="switchPage('page-tugas')">
             <i data-lucide="check-square" width="20"></i>
             <span>Tugas</span>
         </div>
     </nav>
 
-    <script>
-        lucide.createIcons();
+    <div id="modal-viewer">
+        <div class="viewer-header">
+            <button onclick="closeViewer()" style="background:none; border:none; color:white;"><i data-lucide="x"></i></button>
+            <div style="max-width:60%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" id="viewer-title">Title</div>
+            <div style="width:24px;"></div>
+        </div>
+        <iframe id="viewer-iframe" class="viewer-iframe" src="" allow="autoplay"></iframe>
+        <a id="viewer-download-btn" href="#" target="_blank" class="fab-download"><i data-lucide="download"></i></a>
+    </div>
 
-        // --- KONFIGURASI (GANTI BAGIAN INI) ---
+    <script>
+        // --- INISIALISASI ---
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            
+            // Animasi Splash Screen (Simulasi Loading)
+            setTimeout(() => {
+                const splash = document.getElementById('splash-screen');
+                splash.style.opacity = '0';
+                splash.style.visibility = 'hidden';
+            }, 2500); // 2.5 Detik agar animasi logo sempat terlihat bagus
+
+            initApp();
+        });
+
+        // --- KONFIGURASI DATA ---
         const CONFIG = {
-            // URL CSV dari Publish to Web
             csvUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRcV7ShJedcvyA34Z0oqOIvcuII4YV0ANqbotmUPrrQt3wtVGBXXhTfiChoBXFykv5nEsYqFHsvEVjm/pub?output=csv",
-            // Masukkan GID (Sheet ID)
             sheets: {
                 jadwal: "0",          
-                tugas: "1114482467",    // GID Sheet Tugas
-                materi: "1446941326",     // GANTI dengan GID Sheet Materi
-                kelompok: "34567890"    // GANTI dengan GID Sheet Kelompok
+                tugas: "1114482467",    
+                materi: "1446941326",     
+                kelompok: "702392331"    
             }
         };
 
         let db = { jadwal: [], tugas: [], materi: [], kelompok: [] };
         
-        // State navigasi materi
-        let materiState = {
-            view: 'folders', // 'folders' or 'files'
-            activeSem: '1'
-        };
+        // --- NAVIGATION LOGIC ---
+        function switchPage(pageId) {
+            // 1. Hide all pages
+            document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
+            // 2. Show target page
+            document.getElementById(pageId).classList.add('active');
+            // 3. Update Bottom Nav State
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            
+            // Mapping Page ID ke Nav ID
+            if(pageId === 'page-home') document.getElementById('nav-home').classList.add('active');
+            else if(pageId === 'page-jadwal') document.getElementById('nav-jadwal').classList.add('active');
+            else if(pageId === 'page-tugas') document.getElementById('nav-tugas').classList.add('active');
+            // Page Materi/Kelompok tidak punya menu bawah khusus, jadi biarkan kosong atau highlight Home (opsional)
 
-        // --- FETCHING DATA ---
+            // Scroll to top
+            document.getElementById('main-content').scrollTop = 0;
+            
+            // Refresh icons jika perlu (kadang dynamic content butuh ini)
+            lucide.createIcons();
+        }
+
+        // --- DATA FETCHING ---
         async function initApp() {
             setTodayDate();
             
-            // 1. Fetch Jadwal
+            // Fetch Jadwal
             db.jadwal = await fetchData(CONFIG.sheets.jadwal);
             updateHomeSchedule();
             renderJadwalList();
 
-            // 2. Fetch Tugas
+            // Fetch Tugas
             try {
                 db.tugas = await fetchData(CONFIG.sheets.tugas);
                 updateHomeTaskCount();
                 renderTugasList();
-            } catch (e) { console.warn("Tugas not loaded"); }
+            } catch (e) {}
 
-            // 3. Fetch Materi & Kelompok (Lazy load tapi pre-fetch)
+            // Fetch Materi
             try { 
                 db.materi = await fetchData(CONFIG.sheets.materi);
-                // Load default semester 1 folders
-                loadMateriFolders('1');
+                loadMateriFolders('1'); // Load default sem 1
             } catch(e){}
             
+            // Fetch Kelompok
             try { 
                 db.kelompok = await fetchData(CONFIG.sheets.kelompok); 
                 renderKelompokList(); 
@@ -653,7 +613,7 @@
             });
         }
 
-        // --- LOGIC TAMPILAN UTAMA ---
+        // --- RENDERING LOGIC ---
 
         function setTodayDate() {
             const options = { weekday: 'long', day: 'numeric', month: 'short' };
@@ -687,8 +647,6 @@
             document.getElementById('task-counter').innerText = activeTasks.length;
         }
 
-        // --- RENDER FUNCTIONS ---
-
         function renderJadwalList() {
             const container = document.getElementById('list-jadwal-container');
             container.innerHTML = '';
@@ -721,9 +679,9 @@
                 container.innerHTML += `
                 <div class="list-item" style="border-left:4px solid var(--accent);">
                     <div class="list-content">
-                        <div style="display:flex; justify-content:space-between;">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
                             <h4>${item['MATA KULIAH']}</h4>
-                            <span style="font-size:0.75rem; color:#e17055; font-weight:bold;">${item.DEADLINE}</span>
+                            <span style="font-size:0.75rem; color:#e17055; font-weight:bold; white-space:nowrap; margin-left:8px;">${item.DEADLINE}</span>
                         </div>
                         <p style="margin-top:4px;">${item['JUDUL TUGAS']}</p>
                         <a href="${item['LINK PENGUMPULAN']}" target="_blank" 
@@ -735,45 +693,50 @@
             });
         }
 
-        // --- NEW MATERI LOGIC (SMART VIEWER) ---
+        function renderKelompokList() {
+            const container = document.getElementById('list-kelompok-container');
+            container.innerHTML = '';
+            db.kelompok.forEach(item => {
+                container.innerHTML += `
+                <div class="list-item" style="display:block;">
+                    <h4 style="color:var(--primary); margin-bottom:5px;">${item['Mata Kuliah']} - ${item['Nama Kelompok']}</h4>
+                    <p style="line-height:1.6;">${item['Daftar Anggota']}</p>
+                </div>`;
+            });
+        }
 
-        // 1. Load Folders (Matkul) based on Semester
+        // --- MATERI SYSTEM (Navigation inside Page) ---
+        let currentSem = '1';
+
         function loadMateriFolders(semester, btnElement) {
-            materiState.activeSem = semester;
-            materiState.view = 'folders';
-
-            // Update UI Tab Active
+            currentSem = semester;
+            
+            // Tab UI Logic
             if(btnElement) {
                 document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
                 btnElement.classList.add('active');
             }
 
-            // Reset UI
+            // Show Tabs, Hide Breadcrumb
             document.getElementById('materi-filters').style.display = 'flex';
             document.getElementById('materi-crumb').style.display = 'none';
-            document.getElementById('btn-materi-back').onclick = () => closeModal('modal-materi'); // Default back closes modal
-            
+            document.getElementById('btn-materi-back').onclick = () => switchPage('page-home');
+
             const container = document.getElementById('materi-content');
             container.innerHTML = '';
 
-            // Filter data by Semester
             const filtered = db.materi.filter(m => m.Semester == semester);
-            
             if(filtered.length === 0) {
-                container.innerHTML = `<div style="text-align:center; padding:40px; color:#aaa;">Belum ada materi di Semester ${semester}</div>`;
+                container.innerHTML = `<div style="text-align:center; padding:40px; color:#aaa;">Belum ada materi.</div>`;
                 return;
             }
 
-            // Get Unique Mata Kuliah (Make folders)
             const uniqueMatkul = [...new Set(filtered.map(item => item['Mata Kuliah']))];
-
             let html = '<div class="folder-grid">';
             uniqueMatkul.forEach(matkul => {
-                // Count files
                 const count = filtered.filter(m => m['Mata Kuliah'] === matkul).length;
-                
                 html += `
-                <div class="folder-card" onclick="openMatkulFolder('${matkul}')">
+                <div class="folder-card" onclick="openMatkulFiles('${matkul}')">
                     <div class="folder-icon"><i data-lucide="folder"></i></div>
                     <div class="folder-name">${matkul}</div>
                     <div class="folder-info">${count} File</div>
@@ -784,27 +747,20 @@
             lucide.createIcons();
         }
 
-        // 2. Open Specific Folder (Show Files)
-        function openMatkulFolder(matkulName) {
-            materiState.view = 'files';
-            const semester = materiState.activeSem;
-
-            // Update UI Header
-            document.getElementById('materi-filters').style.display = 'none'; // Hide semester tabs
+        function openMatkulFiles(matkulName) {
+            // Hide Tabs, Show Breadcrumb
+            document.getElementById('materi-filters').style.display = 'none';
             document.getElementById('materi-crumb').style.display = 'flex';
             document.getElementById('crumb-folder').innerText = matkulName;
             
-            // Change Back Button Logic
-            document.getElementById('btn-materi-back').onclick = () => loadMateriFolders(semester); // Back goes to folder list
+            // Override Back Button (Back to Folders)
+            document.getElementById('btn-materi-back').onclick = handleMateriBack;
 
             const container = document.getElementById('materi-content');
             container.innerHTML = '';
 
-            // Filter files
-            const files = db.materi.filter(m => m.Semester == semester && m['Mata Kuliah'] === matkulName);
-
+            const files = db.materi.filter(m => m.Semester == currentSem && m['Mata Kuliah'] === matkulName);
             files.forEach(item => {
-                // Determine icon
                 let iconName = 'file-text';
                 let iconColor = '#6C5CE7'; 
                 const type = (item.Tipe || '').toLowerCase();
@@ -813,12 +769,8 @@
                 else if(type.includes('ppt')) { iconName = 'presentation'; iconColor = '#e67e22'; }
                 else if(type.includes('video')) { iconName = 'play-circle'; iconColor = '#0984e3'; }
 
-                // PENTING: Kita escape judul untuk keamanan JS
-                const rawLink = item['Link Akses'];
-                const title = item['Nama Materi'].replace(/'/g, "\\'"); // Escape single quotes
-
                 container.innerHTML += `
-                <div class="list-item" onclick="openDocPreview('${rawLink}', '${title}')">
+                <div class="list-item" onclick="openDocPreview('${item['Link Akses']}', '${item['Nama Materi']}')">
                     <div class="list-icon" style="color:${iconColor}; background:#f1f2f6;">
                         <i data-lucide="${iconName}"></i>
                     </div>
@@ -832,89 +784,35 @@
             lucide.createIcons();
         }
 
-        // 3. LOGIC PREVIEW CANGGIH (Embedded & Fix iOS)
+        function handleMateriBack() {
+            // If currently showing files, go back to folders
+            if(document.getElementById('materi-filters').style.display === 'none') {
+                loadMateriFolders(currentSem);
+            } else {
+                switchPage('page-home');
+            }
+        }
+
+        // --- VIEWER LOGIC ---
         function openDocPreview(rawUrl, title) {
             if (!rawUrl) return;
-
-            // Set Title
             document.getElementById('viewer-title').innerText = title;
-
-            // --- PERBAIKAN LOGIKA DOWNLOAD & PREVIEW ---
+            document.getElementById('viewer-download-btn').href = rawUrl;
+            
             let embedUrl = rawUrl;
-            let downloadUrl = rawUrl; // Default link
-
-            // Deteksi ID File Drive
-            const idMatch = rawUrl.match(/\/d\/(.*?)(?:\/|$)/);
-            if (idMatch && idMatch[1]) {
-                const fileId = idMatch[1];
-                
-                // Link Preview: Mode preview (paling aman untuk iframe)
-                embedUrl = `https://drive.google.com/file/d/${fileId}/preview`;
-                
-                // Link Download: Mode Direct Download (memaksa download)
-                // Peringatan: File besar mungkin kena virus scan warning, tapi ini standard behavior "Download"
-                downloadUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
-            } else {
-                // Fallback untuk link non-standard (misal link edit)
+            if (rawUrl.includes('drive.google.com') && rawUrl.includes('/d/')) {
                 embedUrl = rawUrl.replace(/\/view.*/, '/preview').replace(/\/edit.*/, '/preview');
             }
 
-            // Set Link Download Button
-            document.getElementById('viewer-download-btn').href = downloadUrl;
-            
-            // Set Iframe Source
-            const iframe = document.getElementById('viewer-iframe');
-            iframe.src = embedUrl;
-
-            // Buka Modal Viewer
-            openModal('modal-viewer');
+            document.getElementById('viewer-iframe').src = embedUrl;
+            document.getElementById('modal-viewer').classList.add('active');
         }
 
-        // Handle Back Button di Modal Materi
-        function handleMateriBack() {
-            closeModal('modal-materi');
-        }
-
-        // --- RENDER KELOMPOK ---
-        function renderKelompokList() {
-            const container = document.getElementById('list-kelompok-container');
-            container.innerHTML = '';
-            
-            db.kelompok.forEach(item => {
-                container.innerHTML += `
-                <div class="list-item" style="display:block;">
-                    <h4 style="color:var(--primary); margin-bottom:5px;">${item['Mata Kuliah']} - ${item['Nama Kelompok']}</h4>
-                    <p style="line-height:1.5;">${item['Daftar Anggota']}</p>
-                </div>`;
-            });
-        }
-
-        // --- INTERAKSI MODAL ---
-        function openModal(id) {
-            document.getElementById(id).classList.add('active');
-            // Reset materi to default view if opening materi modal
-            if(id === 'modal-materi') {
-                loadMateriFolders('1'); // Default sem 1
-                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-                document.querySelector('.filter-btn').classList.add('active');
-            }
-        }
-        function closeModal(id) {
-            document.getElementById(id).classList.remove('active');
-            
-            // Jika menutup viewer, kosongkan iframe agar tidak memakan memori/suara video mati
-            if(id === 'modal-viewer') {
-                document.getElementById('viewer-iframe').src = '';
-            }
-        }
-        function closeAllModals() {
-            document.querySelectorAll('.modal').forEach(el => el.classList.remove('active'));
+        function closeViewer() {
+            document.getElementById('modal-viewer').classList.remove('active');
             document.getElementById('viewer-iframe').src = '';
         }
 
-        // Run
-        initApp();
     </script>
 </body>
 </html>
-
