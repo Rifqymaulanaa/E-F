@@ -1,20 +1,23 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="theme-color" content="#F8F9FD">
     <title>E&F Class App</title>
-    
+
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="apple-touch-icon" href="logo.png">
-    
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-    
+
     <style>
         /* --- CSS VARIABLES (LIGHT MODE ONLY) --- */
         :root {
@@ -23,24 +26,24 @@
             --primary-light: #a29bfe;
             --accent: #FDCB6E;
             --danger: #ff7675;
-            
+
             /* Backgrounds locked to Light Mode */
             --bg-main: #F8F9FD;
             --bg-card: #FFFFFF;
             --bg-subtle: #f1f2f6;
-            
+
             /* Text locked to Light Mode */
             --text-main: #2D3436;
             --text-muted: #636E72;
             --border-light: #dfe6e9;
-            
+
             --radius-xl: 24px;
             --radius-lg: 16px;
             --radius-md: 12px;
-            
-            --shadow-sm: 0 2px 8px rgba(0,0,0,0.04);
+
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
             --shadow-md: 0 8px 24px rgba(108, 92, 231, 0.08);
-            --shadow-float: 0 10px 30px rgba(0,0,0,0.1);
+            --shadow-float: 0 10px 30px rgba(0, 0, 0, 0.1);
 
             --header-height: 70px;
             --nav-height: 80px;
@@ -48,254 +51,643 @@
             --safe-area-bottom: env(safe-area-inset-bottom, 0px);
         }
 
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
-        
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            outline: none;
+        }
+
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
             background-color: var(--bg-main);
             color: var(--text-main);
-            margin: 0; padding: 0;
-            overflow: hidden; height: 100vh;
-            display: flex; flex-direction: column;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
             overscroll-behavior-y: none;
         }
 
-        h1, h2, h3, h4, p { margin: 0; }
-        button { cursor: pointer; font-family: inherit; }
+        h1,
+        h2,
+        h3,
+        h4,
+        p {
+            margin: 0;
+        }
+
+        button {
+            cursor: pointer;
+            font-family: inherit;
+        }
 
         /* --- SPLASH SCREEN (0.5s Animation) --- */
         #splash-screen {
-            position: fixed; inset: 0;
+            position: fixed;
+            inset: 0;
             background: var(--bg-card);
             z-index: 9999;
-            display: flex; flex-direction: column;
-            justify-content: center; align-items: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
             transition: opacity 0.3s ease-out, visibility 0.3s;
         }
+
         .splash-logo {
-            width: 110px; height: 110px;
+            width: 110px;
+            height: 110px;
             object-fit: contain;
             animation: pulseLogo 0.5s ease-in-out infinite;
             margin-bottom: 24px;
         }
+
         .loading-status {
-            font-size: 0.9rem; color: var(--primary);
-            font-weight: 600; letter-spacing: 0.3px;
+            font-size: 0.9rem;
+            color: var(--primary);
+            font-weight: 600;
+            letter-spacing: 0.3px;
         }
-        @keyframes pulseLogo { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); opacity: 0.9; } }
+
+        @keyframes pulseLogo {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+                opacity: 0.9;
+            }
+        }
 
         /* --- PULL TO REFRESH --- */
         #ptr-indicator {
-            position: absolute; top: calc(var(--header-height) + var(--safe-area-top)); left: 0; width: 100%; height: 60px;
-            display: flex; align-items: center; justify-content: center;
+            position: absolute;
+            top: calc(var(--header-height) + var(--safe-area-top));
+            left: 0;
+            width: 100%;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            z-index: 40; color: var(--primary); pointer-events: none;
-            transform: translateY(-100%); opacity: 0;
+            z-index: 40;
+            color: var(--primary);
+            pointer-events: none;
+            transform: translateY(-100%);
+            opacity: 0;
         }
-        #ptr-indicator.visible { opacity: 1; }
+
+        #ptr-indicator.visible {
+            opacity: 1;
+        }
 
         /* --- HEADER --- */
         header {
             height: calc(var(--header-height) + var(--safe-area-top));
             padding: var(--safe-area-top) 24px 0 24px;
-            display: flex; justify-content: space-between; align-items: center;
-            background: rgba(248, 249, 253, 0.8); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-            position: fixed; top: 0; left: 0; right: 0; z-index: 50;
-            border-bottom: 1px solid rgba(0,0,0,0.03);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(248, 249, 253, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 50;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.03);
         }
-        .brand { display: flex; align-items: center; gap: 12px; }
-        .brand img { width: 42px; height: 42px; border-radius: 10px; }
-        .brand-text h1 { font-size: 1.15rem; font-weight: 800; color: var(--text-main); }
-        .brand-text p { font-size: 0.8rem; color: var(--text-muted); }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand img {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+        }
+
+        .brand-text h1 {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: var(--text-main);
+        }
+
+        .brand-text p {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
         .btn-icon-header {
-            width: 40px; height: 40px; border-radius: var(--radius-md);
-            background: var(--bg-card); display: flex; align-items: center; justify-content: center;
-            box-shadow: var(--shadow-sm); color: var(--text-main); border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-md);
+            background: var(--bg-card);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow-sm);
+            color: var(--text-main);
+            border: none;
         }
 
         /* --- MAIN CONTENT --- */
         main {
-            flex: 1; overflow-y: auto; overflow-x: hidden;
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
             margin-top: calc(var(--header-height) + var(--safe-area-top));
             padding-bottom: calc(var(--nav-height) + var(--safe-area-bottom) + 30px);
             position: relative;
         }
-        .page { display: none; padding: 20px 24px; max-width: 600px; margin: 0 auto; animation: slideIn 0.3s ease; }
-        .page.active { display: block; }
-        @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+
+        .page {
+            display: none;
+            padding: 20px 24px;
+            max-width: 600px;
+            margin: 0 auto;
+            animation: slideIn 0.3s ease;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
 
         /* --- BENTO GRID & HOME --- */
-        .bento-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
-        .bento-card {
-            background: var(--bg-card); border-radius: var(--radius-xl); padding: 20px;
-            box-shadow: var(--shadow-sm); border: 1px solid var(--border-light);
-            position: relative; overflow: hidden; transition: transform 0.2s ease;
+        .bento-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 24px;
         }
-        .bento-card:active { transform: scale(0.98); }
+
+        .bento-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-xl);
+            padding: 20px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-light);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s ease;
+        }
+
+        .bento-card:active {
+            transform: scale(0.98);
+        }
 
         .card-hero-schedule {
             grid-column: span 2;
-            background: linear-gradient(145deg, var(--primary), var(--primary-dark)); color: white;
-            border: none; box-shadow: var(--shadow-md); display: flex; flex-direction: column; gap: 16px;
+            background: linear-gradient(145deg, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            box-shadow: var(--shadow-md);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
         }
-        .schedule-header-row { display: flex; justify-content: space-between; align-items: center; }
+
+        .schedule-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
         .date-badge {
-            background: rgba(255,255,255,0.15); padding: 6px 14px;
-            border-radius: 30px; font-size: 0.8rem; font-weight: 600;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            font-weight: 600;
         }
-        .empty-schedule { text-align: center; padding: 20px 0; opacity: 0.9; font-size: 0.9rem; }
+
+        .empty-schedule {
+            text-align: center;
+            padding: 20px 0;
+            opacity: 0.9;
+            font-size: 0.9rem;
+        }
+
         .schedule-item-row {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
-        .schedule-item-row:last-child { border-bottom: none; }
+
+        .schedule-item-row:last-child {
+            border-bottom: none;
+        }
+
         .class-badge-box {
-            background: var(--accent); color: var(--text-main);
-            padding: 6px 10px; border-radius: 8px; font-size: 0.75rem; font-weight: 800; box-shadow: var(--shadow-sm);
+            background: var(--accent);
+            color: var(--text-main);
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            box-shadow: var(--shadow-sm);
         }
 
         /* Stats & Menu Cards */
-        .card-stat-task { display: flex; flex-direction: column; justify-content: space-between; }
-        .task-stat-num { font-size: 2.8rem; font-weight: 800; color: var(--text-main); line-height: 1; }
-        .card-menu-item {
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            gap: 12px; text-align: center; height: 130px;
+        .card-stat-task {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
+
+        .task-stat-num {
+            font-size: 2.8rem;
+            font-weight: 800;
+            color: var(--text-main);
+            line-height: 1;
+        }
+
+        .card-menu-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            text-align: center;
+            height: 130px;
+        }
+
         .menu-icon-box {
-            width: 48px; height: 48px; border-radius: 14px;
-            display: flex; align-items: center; justify-content: center;
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         /* Quick Links */
-        .section-title { font-size: 1rem; font-weight: 700; margin: 0 0 16px 0; }
-        .links-grid { 
-            display: grid; grid-template-columns: repeat(4, 1fr); 
-            gap: 16px 12px; /* Row gap, Column gap */
+        .section-title {
+            font-size: 1rem;
+            font-weight: 700;
+            margin: 0 0 16px 0;
         }
+
+        .links-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px 12px;
+            /* Row gap, Column gap */
+        }
+
         .link-box {
-            display: flex; flex-direction: column; align-items: center; gap: 8px;
-            text-decoration: none; color: var(--text-muted); font-size: 0.7rem; font-weight: 600;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 0.7rem;
+            font-weight: 600;
             text-align: center;
         }
+
         .link-icon-circle {
-            width: 50px; height: 50px; background: var(--bg-card);
-            border-radius: 18px; display: flex; align-items: center; justify-content: center;
-            box-shadow: var(--shadow-sm); color: var(--primary); border: 1px solid var(--border-light);
+            width: 50px;
+            height: 50px;
+            background: var(--bg-card);
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow-sm);
+            color: var(--primary);
+            border: 1px solid var(--border-light);
             transition: transform 0.2s;
         }
-        .link-box:active .link-icon-circle { transform: scale(0.95); background: var(--bg-main); }
+
+        .link-box:active .link-icon-circle {
+            transform: scale(0.95);
+            background: var(--bg-main);
+        }
 
         /* --- LIST & PAGE STYLES --- */
-        .page-header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; position: sticky; top: 0; z-index: 10; background: var(--bg-main); padding-bottom: 10px;}
+        .page-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background: var(--bg-main);
+            padding-bottom: 10px;
+        }
+
         .btn-back {
-            border: none; background: var(--bg-card); width: 40px; height: 40px;
-            border-radius: var(--radius-md); box-shadow: var(--shadow-sm);
-            display: flex; align-items: center; justify-content: center; color: var(--text-main);
+            border: none;
+            background: var(--bg-card);
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-main);
         }
 
         .day-group-header {
             margin: 24px 0 12px 0;
-            font-size: 0.9rem; font-weight: 800; color: var(--primary);
-            text-transform: uppercase; letter-spacing: 1px;
-            display: flex; align-items: center; gap: 8px;
+            font-size: 0.9rem;
+            font-weight: 800;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
-        .day-group-header::after { content: ''; flex: 1; height: 1px; background: var(--border-light); }
+
+        .day-group-header::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border-light);
+        }
 
         .list-card {
-            background: var(--bg-card); padding: 16px; border-radius: var(--radius-lg);
-            margin-bottom: 14px; display: flex; gap: 14px; align-items: flex-start;
-            box-shadow: var(--shadow-sm); border: 1px solid var(--border-light);
+            background: var(--bg-card);
+            padding: 16px;
+            border-radius: var(--radius-lg);
+            margin-bottom: 14px;
+            display: flex;
+            gap: 14px;
+            align-items: flex-start;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-light);
         }
+
         .list-date-box {
-            width: 50px; height: 50px; border-radius: 14px; background: #e0e7ff;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            width: 50px;
+            height: 50px;
+            border-radius: 14px;
+            background: #e0e7ff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
             flex-shrink: 0;
         }
-        .date-day { font-size: 0.7rem; font-weight: 700; color: var(--primary); text-transform: uppercase; }
-        .list-info { flex: 1; min-width: 0; }
-        .list-title { font-size: 1rem; font-weight: 700; margin-bottom: 6px; line-height: 1.3; }
-        .list-detail { font-size: 0.85rem; color: var(--text-muted); display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+
+        .date-day {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-transform: uppercase;
+        }
+
+        .list-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .list-title {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+            line-height: 1.3;
+        }
+
+        .list-detail {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 4px;
+        }
 
         /* Task Specific */
-        .task-card { border-left: 5px solid var(--accent); }
-        .task-deadline { color: #d63031; font-weight: 600; font-size: 0.8rem; }
+        .task-card {
+            border-left: 5px solid var(--accent);
+        }
+
+        .task-deadline {
+            color: #d63031;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+
         .btn-submit {
-            display: inline-flex; align-items: center; gap: 6px;
-            background: var(--primary); color: white; text-decoration: none;
-            padding: 8px 16px; border-radius: 30px; font-size: 0.85rem; font-weight: 600;
-            margin-top: 12px; box-shadow: 0 4px 10px rgba(108, 92, 231, 0.3);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--primary);
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-top: 12px;
+            box-shadow: 0 4px 10px rgba(108, 92, 231, 0.3);
         }
 
         /* Materi Filter */
         .filter-scroll {
-            display: flex; gap: 10px; margin-bottom: 24px; overflow-x: auto;
-            padding: 4px 4px 10px 4px; scrollbar-width: none;
+            display: flex;
+            gap: 10px;
+            margin-bottom: 24px;
+            overflow-x: auto;
+            padding: 4px 4px 10px 4px;
+            scrollbar-width: none;
         }
-        .filter-chip {
-            padding: 8px 20px; border-radius: 30px; background: var(--bg-card);
-            border: 1px solid var(--border-light); font-weight: 600; color: var(--text-muted);
-            white-space: nowrap; font-size: 0.85rem; transition: all 0.2s;
-        }
-        .filter-chip.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 4px 12px rgba(108, 92, 231, 0.3); }
 
-        .folder-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; padding-bottom: 20px; }
+        .filter-chip {
+            padding: 8px 20px;
+            border-radius: 30px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            font-weight: 600;
+            color: var(--text-muted);
+            white-space: nowrap;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .filter-chip.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(108, 92, 231, 0.3);
+        }
+
+        .folder-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            padding-bottom: 20px;
+        }
+
         .folder-item {
-            background: var(--bg-card); border: 1px solid var(--border-light);
-            padding: 16px; border-radius: var(--radius-lg); text-align: center;
-            display: flex; flex-direction: column; align-items: center; gap: 10px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            padding: 16px;
+            border-radius: var(--radius-lg);
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
             box-shadow: var(--shadow-sm);
         }
-        .folder-icon-yellow { width: 56px; height: 56px; background: #fff3cd; border-radius: 16px; display: flex; align-items: center; justify-content: center; color: #d4a017; }
+
+        .folder-icon-yellow {
+            width: 56px;
+            height: 56px;
+            background: #fff3cd;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #d4a017;
+        }
 
         /* --- BOTTOM NAV --- */
         .bottom-nav-container {
-            position: fixed; bottom: calc(20px + var(--safe-area-bottom)); left: 0; width: 100%;
-            display: flex; justify-content: center; z-index: 100; pointer-events: none;
+            position: fixed;
+            bottom: calc(20px + var(--safe-area-bottom));
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            z-index: 100;
+            pointer-events: none;
         }
+
         .bottom-nav {
             pointer-events: auto;
-            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-            border-radius: 36px; padding: 12px 24px;
-            display: flex; gap: 32px; box-shadow: var(--shadow-float);
-            border: 1px solid rgba(0,0,0,0.05);
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-radius: 36px;
+            padding: 12px 24px;
+            display: flex;
+            gap: 32px;
+            box-shadow: var(--shadow-float);
+            border: 1px solid rgba(0, 0, 0, 0.05);
         }
+
         .nav-link {
-            display: flex; flex-direction: column; align-items: center; gap: 6px;
-            color: #b2bec3; font-size: 0.75rem; font-weight: 600; cursor: pointer;
-            transition: color 0.2s ease; position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            color: #b2bec3;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: color 0.2s ease;
+            position: relative;
         }
-        .nav-link.active { color: var(--primary); }
+
+        .nav-link.active {
+            color: var(--primary);
+        }
+
         .nav-link.active::after {
-            content: ''; position: absolute; bottom: -8px; width: 6px; height: 6px;
-            background: var(--primary); border-radius: 50%;
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            width: 6px;
+            height: 6px;
+            background: var(--primary);
+            border-radius: 50%;
         }
 
         /* --- MODAL VIEWER --- */
         #modal-viewer {
-            position: fixed; inset: 0; background: #000; z-index: 2000;
-            display: none; flex-direction: column;
+            position: fixed;
+            inset: 0;
+            background: #000;
+            z-index: 2000;
+            display: none;
+            flex-direction: column;
             animation: fadeIn 0.2s ease;
         }
-        #modal-viewer.active { display: flex; }
-        .viewer-header {
-            height: calc(60px + var(--safe-area-top)); padding: var(--safe-area-top) 20px 0 20px;
-            background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: space-between; color: white;
-        }
-        .viewer-iframe { flex: 1; border: none; background: #f0f0f0; }
-        .fab-download {
-            position: absolute; bottom: calc(30px + var(--safe-area-bottom)); right: 30px;
-            width: 56px; height: 56px; background: var(--accent); border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: var(--shadow-float); color: #2d3436; text-decoration: none;
-        }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
+        #modal-viewer.active {
+            display: flex;
+        }
+
+        .viewer-header {
+            height: calc(60px + var(--safe-area-top));
+            padding: var(--safe-area-top) 20px 0 20px;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: white;
+        }
+
+        .viewer-iframe {
+            flex: 1;
+            border: none;
+            background: #f0f0f0;
+        }
+
+        .fab-download {
+            position: absolute;
+            bottom: calc(30px + var(--safe-area-bottom));
+            right: 30px;
+            width: 56px;
+            height: 56px;
+            background: var(--accent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow-float);
+            color: #2d3436;
+            text-decoration: none;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
     </style>
 </head>
+
 <body>
 
     <div id="splash-screen">
-        <img src="logo.png" alt="Logo E&F" class="splash-logo" onerror="this.src='https://ui-avatars.com/api/?name=EF&background=6C5CE7&color=fff&size=128&font-size=0.5'">
+        <img src="logo.png" alt="Logo E&F" class="splash-logo"
+            onerror="this.src='https://ui-avatars.com/api/?name=EF&background=6C5CE7&color=fff&size=128&font-size=0.5'">
         <div class="loading-status" id="loading-text">Memuat Data...</div>
     </div>
 
@@ -303,7 +695,8 @@
 
     <header id="app-header">
         <div class="brand">
-            <img src="logo.png" alt="Logo" onerror="this.src='https://ui-avatars.com/api/?name=EF&background=6C5CE7&color=fff'">
+            <img src="logo.png" alt="Logo"
+                onerror="this.src='https://ui-avatars.com/api/?name=EF&background=6C5CE7&color=fff'">
             <div class="brand-text">
                 <p>Selamat Datang,</p>
                 <h1>E&F Class</h1>
@@ -313,7 +706,7 @@
     </header>
 
     <main id="main-content">
-        
+
         <section id="page-home" class="page active">
             <div class="bento-grid">
                 <div class="bento-card card-hero-schedule" onclick="navigateTo('page-jadwal')">
@@ -327,7 +720,8 @@
                 </div>
 
                 <div class="bento-card card-stat-task" onclick="navigateTo('page-tugas')">
-                    <div style="display:flex; justify-content:space-between; align-items:center; color:var(--text-muted);">
+                    <div
+                        style="display:flex; justify-content:space-between; align-items:center; color:var(--text-muted);">
                         <span style="font-weight:600; font-size:0.85rem;">Tugas Aktif</span>
                         <i data-lucide="alert-circle" color="var(--accent)" width="20"></i>
                     </div>
@@ -381,7 +775,7 @@
         </section>
 
         <section id="page-tugas" class="page">
-             <div class="page-header">
+            <div class="page-header">
                 <button class="btn-back" onclick="handleBack()"><i data-lucide="arrow-left" width="20"></i></button>
                 <h2>Daftar Tugas</h2>
             </div>
@@ -395,7 +789,7 @@
                 <button class="btn-back" onclick="handleBack()"><i data-lucide="arrow-left" width="20"></i></button>
                 <h2 id="materi-page-title">Arsip Materi</h2>
             </div>
-            
+
             <div id="materi-filters" class="filter-scroll">
                 <button class="filter-chip active" onclick="loadMateriFolders('1', this)">Semester 1</button>
                 <button class="filter-chip" onclick="loadMateriFolders('2', this)">Semester 2</button>
@@ -435,8 +829,10 @@
 
     <div id="modal-viewer">
         <div class="viewer-header">
-            <button onclick="closeViewer()" style="background:none; border:none; color:white;"><i data-lucide="x"></i></button>
-            <div style="max-width:60%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-weight:600;" id="viewer-title">Doc Viewer</div>
+            <button onclick="closeViewer()" style="background:none; border:none; color:white;"><i
+                    data-lucide="x"></i></button>
+            <div style="max-width:60%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-weight:600;"
+                id="viewer-title">Doc Viewer</div>
             <div style="width:24px;"></div>
         </div>
         <iframe id="viewer-iframe" class="viewer-iframe" src="" allow="autoplay"></iframe>
@@ -452,11 +848,12 @@
 
         // --- STATE & DATA ---
         let db = { jadwal: [], tugas: [], materi: [], kelompok: [] };
-        
+
         // Navigation State
         let pageStack = ['page-home']; // Tracks navigation history
         let isViewingMateriFiles = false; // Tracks if we are inside a materi folder
         let currentSemester = '1';
+        let isRefreshing = false; // Lock untuk prevent multiple refresh
 
         // --- INITIALIZATION ---
         const splash = document.getElementById('splash-screen');
@@ -465,7 +862,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
             setTodayDate();
-            
+
             // Fast splash screen (0.5s)
             setTimeout(() => {
                 splash.style.opacity = '0';
@@ -475,8 +872,32 @@
             initAppData();
         });
 
+        // --- UTILITY: SANITASI INPUT (SECURITY FIX) ---
+        function sanitizeForHTML(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function sanitizeForJS(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/\\/g, '\\\\')
+                .replace(/'/g, "\\'")
+                .replace(/"/g, '\\"')
+                .replace(/\n/g, '\\n')
+                .replace(/\r/g, '\\r');
+        }
+
         // --- DATA FETCHING ---
         async function initAppData() {
+            if (isRefreshing) return; // Prevent multiple simultaneous refreshes
+            isRefreshing = true;
+
             updateLoadingStatus("Sinkronisasi Jadwal...");
             db.jadwal = await fetchData(CONFIG.sheets.jadwal);
             updateHomeSchedule();
@@ -490,17 +911,18 @@
             updateLoadingStatus("Menyiapkan Arsip...");
             db.materi = await fetchData(CONFIG.sheets.materi);
             loadMateriFolders('1'); // Initial load
-            
+
             updateLoadingStatus("Memuat Kelompok...");
-            db.kelompok = await fetchData(CONFIG.sheets.kelompok); 
+            db.kelompok = await fetchData(CONFIG.sheets.kelompok);
             renderKelompokList();
 
             updateLoadingStatus("Siap!");
             lucide.createIcons();
+            isRefreshing = false;
         }
 
         function updateLoadingStatus(txt) {
-            if(loadingText) loadingText.innerText = txt;
+            if (loadingText) loadingText.innerText = txt;
         }
 
         async function fetchData(gid) {
@@ -509,9 +931,9 @@
                 if (!res.ok) throw new Error('Network response was not ok');
                 const text = await res.text();
                 return parseCSV(text);
-            } catch (e) { 
+            } catch (e) {
                 console.error("Fetch error:", e);
-                return []; 
+                return [];
             }
         }
 
@@ -533,7 +955,7 @@
             // Visual switch
             document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
             document.getElementById(pageId).classList.add('active');
-            
+
             // Reset Materi view state if navigating away from it, or if navigating TO it fresh
             if (pageId !== 'page-materi') {
                 isViewingMateriFiles = false;
@@ -546,7 +968,7 @@
 
             // Update Bottom Nav
             document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
-            const navMap = {'page-home': 'nav-home', 'page-jadwal': 'nav-jadwal', 'page-tugas': 'nav-tugas'};
+            const navMap = { 'page-home': 'nav-home', 'page-jadwal': 'nav-jadwal', 'page-tugas': 'nav-tugas' };
             if (navMap[pageId]) document.getElementById(navMap[pageId]).classList.add('active');
 
             // Update Stack
@@ -558,7 +980,7 @@
                 pageStack = pageStack.filter(p => p !== pageId);
                 pageStack.push(pageId);
             }
-            
+
             document.getElementById('main-content').scrollTop = 0;
             lucide.createIcons();
         }
@@ -584,7 +1006,7 @@
                 pageStack.pop(); // Remove current
                 const prevPage = pageStack[pageStack.length - 1];
                 navigateTo(prevPage);
-                
+
                 // Correctly reconstruct stack after navigateTo clears it potentially
                 // Actually navigateTo resets stack logic slightly, so we just manually visual switch here is safer?
                 // No, let's trust navigateTo but prevent it from pushing the page back on.
@@ -595,7 +1017,7 @@
                 // This is fine.
             } else {
                 // If at root but not home, go home
-                if(pageStack[0] !== 'page-home') navigateTo('page-home');
+                if (pageStack[0] !== 'page-home') navigateTo('page-home');
             }
         }
 
@@ -621,7 +1043,7 @@
                 </div>`;
             } else {
                 // Sort by time
-                todayClasses.sort((a,b) => a.JAM.localeCompare(b.JAM));
+                todayClasses.sort((a, b) => a.JAM.localeCompare(b.JAM));
                 // Show max 3
                 todayClasses.slice(0, 3).forEach(cls => {
                     container.innerHTML += `
@@ -637,6 +1059,7 @@
                     `;
                 });
             }
+            lucide.createIcons(); // FIX: Ensure icons render in home schedule
         }
 
         function updateHomeTaskCount() {
@@ -648,21 +1071,21 @@
         function renderJadwalGrouped() {
             const container = document.getElementById('list-jadwal-container');
             container.innerHTML = '';
-            
-            if(db.jadwal.length === 0) {
+
+            if (db.jadwal.length === 0) {
                 container.innerHTML = '<p style="text-align:center; color:var(--text-muted); margin-top:20px;">Data jadwal belum tersedia.</p>';
                 return;
             }
 
             const daysOrder = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
-            
+
             daysOrder.forEach(day => {
                 // Find classes for this day
                 const classes = db.jadwal.filter(item => item.HARI && item.HARI.toLowerCase() === day.toLowerCase());
-                
+
                 if (classes.length > 0) {
                     // Sort by Time
-                    classes.sort((a,b) => a.JAM.localeCompare(b.JAM));
+                    classes.sort((a, b) => a.JAM.localeCompare(b.JAM));
 
                     // Add Header
                     container.innerHTML += `<div class="day-group-header"><i data-lucide="calendar-days" width="16"></i> ${day}</div>`;
@@ -686,6 +1109,7 @@
                     });
                 }
             });
+            lucide.createIcons(); // FIX: Ensure icons render after jadwal list update
         }
 
         // --- PAGE: TUGAS ---
@@ -693,8 +1117,8 @@
             const container = document.getElementById('list-tugas-container');
             container.innerHTML = '';
             const activeTasks = db.tugas.filter(t => t.STATUS && t.STATUS.toLowerCase() === 'aktif');
-            
-            if(activeTasks.length === 0) {
+
+            if (activeTasks.length === 0) {
                 container.innerHTML = `<div style="text-align:center; padding:40px 20px; color:var(--text-muted); display:flex; flex-direction:column; align-items:center; gap:10px;">
                     <i data-lucide="check-circle-2" width="40" color="var(--primary-light)"></i>
                     <p>Hore! Tidak ada tugas aktif.</p>
@@ -716,49 +1140,51 @@
                     </div>
                 </div>`;
             });
+            lucide.createIcons(); // FIX: Ensure icons render after tugas list update
         }
 
         // --- PAGE: MATERI (FOLDERS & FILES) ---
         function loadMateriFolders(semester, btn) {
             currentSemester = semester;
             isViewingMateriFiles = false; // We are in folder view
-            
+
             // UI Toggle
             document.getElementById('materi-filters').style.display = 'flex';
             document.getElementById('materi-page-title').innerText = 'Arsip Materi';
 
-            if(btn) {
+            if (btn) {
                 document.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
             } else {
                 // Ensure UI reflects state if called programmatically
                 document.querySelectorAll('.filter-chip').forEach(b => {
-                    if(b.innerText.includes(semester)) b.classList.add('active');
+                    if (b.innerText.includes(semester)) b.classList.add('active');
                     else b.classList.remove('active');
                 });
             }
 
             const container = document.getElementById('materi-content');
             container.innerHTML = '<p style="text-align:center; color:var(--text-muted); margin-top:20px;">Memuat folder...</p>';
-            
+
             setTimeout(() => {
                 const filtered = db.materi.filter(m => m.Semester == semester);
-                if(filtered.length === 0) {
+                if (filtered.length === 0) {
                     container.innerHTML = '<p style="text-align:center; color:var(--text-muted); margin-top:40px;">Belum ada materi untuk semester ini.</p>';
                     return;
                 }
                 const uniqueMatkul = [...new Set(filtered.map(item => item['Mata Kuliah']))];
-                
+
                 let html = '<div class="folder-grid">';
                 uniqueMatkul.forEach(matkul => {
-                    if(!matkul) return;
+                    if (!matkul) return;
                     const count = filtered.filter(m => m['Mata Kuliah'] === matkul).length;
-                    // Escape single quotes for the function call
-                    const safeMatkul = matkul.replace(/'/g, "\\'");
+                    // SECURITY FIX: Proper sanitization for both JS and HTML
+                    const safeMatkul = sanitizeForJS(matkul);
+                    const displayMatkul = sanitizeForHTML(matkul);
                     html += `
                     <div class="folder-item" onclick="openMatkulFiles('${safeMatkul}', '${semester}')">
                         <div class="folder-icon-yellow"><i data-lucide="folder" width="28"></i></div>
-                        <div style="font-weight:700; font-size:0.85rem; line-height:1.3;">${matkul}</div>
+                        <div style="font-weight:700; font-size:0.85rem; line-height:1.3;">${displayMatkul}</div>
                         <div style="font-size:0.75rem; color:var(--text-muted);">${count} File</div>
                     </div>`;
                 });
@@ -775,18 +1201,24 @@
 
             const container = document.getElementById('materi-content');
             const files = db.materi.filter(m => m.Semester == sem && m['Mata Kuliah'] === matkul);
-            
+
             let html = `<div style="padding-bottom:10px; font-size:0.85rem; color:var(--text-muted);">${files.length} dokumen ditemukan</div>`;
-            
+
             files.forEach(item => {
+                // SECURITY FIX: Sanitize semua parameter
+                const safeLink = sanitizeForJS(item['Link Akses']);
+                const safeTitle = sanitizeForJS(item['Nama Materi']);
+                const displayTitle = sanitizeForHTML(item['Nama Materi']);
+                const displayTipe = sanitizeForHTML(item.Tipe || 'Dokumen');
+
                 html += `
-                <div class="list-card" onclick="openDocPreview('${item['Link Akses']}', '${item['Nama Materi']}')">
+                <div class="list-card" onclick="openDocPreview('${safeLink}', '${safeTitle}')">
                     <div class="list-date-box" style="background:var(--bg-subtle); color:var(--primary);">
                         <i data-lucide="file-text" width="24"></i>
                     </div>
                     <div class="list-info">
-                        <h4 class="list-title" style="font-size:0.95rem;">${item['Nama Materi']}</h4>
-                        <p class="list-detail">${item.Tipe || 'Dokumen'}</p>
+                        <h4 class="list-title" style="font-size:0.95rem;">${displayTitle}</h4>
+                        <p class="list-detail">${displayTipe}</p>
                     </div>
                     <i data-lucide="chevron-right" width="20" style="color:var(--text-muted);"></i>
                 </div>`;
@@ -800,24 +1232,30 @@
         function renderKelompokList() {
             const container = document.getElementById('list-kelompok-container');
             container.innerHTML = '';
-            if(db.kelompok.length === 0) {
-                 container.innerHTML = '<p style="text-align:center; color:var(--text-muted); margin-top:20px;">Data kelompok belum tersedia.</p>';
-                 return;
+            if (db.kelompok.length === 0) {
+                container.innerHTML = '<p style="text-align:center; color:var(--text-muted); margin-top:20px;">Data kelompok belum tersedia.</p>';
+                return;
             }
             db.kelompok.forEach(item => {
-                if(!item['Mata Kuliah']) return;
+                if (!item['Mata Kuliah']) return;
+                // SECURITY FIX: Sanitize all displayed data
+                const safeMatkul = sanitizeForHTML(item['Mata Kuliah']);
+                const safeNama = sanitizeForHTML(item['Nama Kelompok']);
+                const safeAnggota = sanitizeForHTML(item['Daftar Anggota']);
+
                 container.innerHTML += `
                 <div class="list-card" style="flex-direction:column; gap:10px;">
                     <div style="display:flex; align-items:center; gap:8px;">
                         <i data-lucide="users" width="18" color="var(--primary)"></i>
-                        <h4 style="color:var(--primary); font-size:0.95rem; font-weight:700;">${item['Mata Kuliah']}</h4>
+                        <h4 style="color:var(--primary); font-size:0.95rem; font-weight:700;">${safeMatkul}</h4>
                     </div>
                     <div style="background:var(--bg-subtle); padding:12px; border-radius:10px;">
-                        <span style="font-weight:700; font-size:0.9rem; display:block; margin-bottom:6px;">${item['Nama Kelompok']}</span>
-                        <p style="font-size:0.85rem; color:var(--text-muted); line-height:1.5; white-space: pre-line;">${item['Daftar Anggota']}</p>
+                        <span style="font-weight:700; font-size:0.9rem; display:block; margin-bottom:6px;">${safeNama}</span>
+                        <p style="font-size:0.85rem; color:var(--text-muted); line-height:1.5; white-space: pre-line;">${safeAnggota}</p>
                     </div>
                 </div>`;
             });
+            lucide.createIcons(); // FIX: Ensure icons render after DOM update
         }
 
         // --- DOC VIEWER ---
@@ -825,7 +1263,7 @@
             if (!url) return;
             document.getElementById('viewer-title').innerText = title;
             document.getElementById('viewer-download-btn').href = url;
-            
+
             // Auto convert Google Drive view/edit links to preview
             let embedUrl = url;
             if (url.includes('drive.google.com') && !url.includes('/preview')) {
@@ -837,8 +1275,22 @@
         }
 
         function closeViewer() {
-            document.getElementById('modal-viewer').classList.remove('active');
-            document.getElementById('viewer-iframe').src = 'about:blank';
+            const modal = document.getElementById('modal-viewer');
+            const iframe = document.getElementById('viewer-iframe');
+
+            modal.classList.remove('active');
+
+            // MEMORY LEAK FIX: Stop iframe loading completely
+            iframe.src = 'about:blank';
+            // Force cleanup by removing and re-adding iframe (prevents memory leak)
+            setTimeout(() => {
+                const parent = iframe.parentNode;
+                const newIframe = iframe.cloneNode(false);
+                newIframe.id = 'viewer-iframe';
+                newIframe.className = 'viewer-iframe';
+                newIframe.setAttribute('allow', 'autoplay');
+                parent.replaceChild(newIframe, iframe);
+            }, 100);
         }
 
         // --- GESTURES (Simple Pull to Refresh) ---
@@ -851,23 +1303,23 @@
             touchStartX = e.touches[0].clientX;
             touchStartY = e.touches[0].clientY;
             isPulling = false;
-        }, {passive: true});
+        }, { passive: true });
 
         mainEl.addEventListener('touchmove', e => {
             const touchY = e.touches[0].clientY;
             const diffY = touchY - touchStartY;
-            
+
             // Pull to refresh
             if (mainEl.scrollTop <= 0 && diffY > 0) {
                 isPulling = true;
-                const translateY = Math.min(diffY * 0.4, 80); 
+                const translateY = Math.min(diffY * 0.4, 80);
                 ptrInd.style.transform = `translateY(${translateY}px)`;
                 ptrInd.classList.add('visible');
             } else {
                 ptrInd.classList.remove('visible');
                 ptrInd.style.transform = `translateY(-100%)`;
             }
-        }, {passive: true});
+        }, { passive: true });
 
         mainEl.addEventListener('touchend', e => {
             const touchEndX = e.changedTouches[0].clientX;
@@ -883,7 +1335,7 @@
             if (isPulling && mainEl.scrollTop <= 0 && diffY > 100) {
                 initAppData();
             }
-            
+
             ptrInd.style.transform = `translateY(-100%)`;
             ptrInd.classList.remove('visible');
             isPulling = false;
@@ -891,4 +1343,5 @@
 
     </script>
 </body>
+
 </html>
