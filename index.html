@@ -11,8 +11,6 @@
     <meta name="theme-color" content="#F8F9FD">
     <title>E&F Class App</title>
 
-    <link rel="manifest"
-        href='data:application/manifest+json,{"name":"E&F Class App","short_name":"E&F App","start_url":"index.html","display":"standalone","background_color":"#F8F9FD","theme_color":"#6C5CE7","icons":[{"src":"logo.png","sizes":"192x192","type":"image/png"},{"src":"logo.png","sizes":"512x512","type":"image/png"}]}'>
     <link rel="icon" type="image/png" href="logo.png">
     <link rel="apple-touch-icon" href="logo.png">
 
@@ -855,7 +853,6 @@
         let pageStack = ['page-home']; // Tracks navigation history
         let isViewingMateriFiles = false; // Tracks if we are inside a materi folder
         let currentSemester = '1';
-        let isRefreshing = false; // Lock untuk prevent multiple refresh
 
         // --- INITIALIZATION ---
         const splash = document.getElementById('splash-screen');
@@ -874,32 +871,8 @@
             initAppData();
         });
 
-        // --- UTILITY: SANITASI INPUT (SECURITY FIX) ---
-        function sanitizeForHTML(str) {
-            if (!str) return '';
-            return String(str)
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#039;');
-        }
-
-        function sanitizeForJS(str) {
-            if (!str) return '';
-            return String(str)
-                .replace(/\\/g, '\\\\')
-                .replace(/'/g, "\\'")
-                .replace(/"/g, '\\"')
-                .replace(/\n/g, '\\n')
-                .replace(/\r/g, '\\r');
-        }
-
         // --- DATA FETCHING ---
         async function initAppData() {
-            if (isRefreshing) return; // Prevent multiple simultaneous refreshes
-            isRefreshing = true;
-
             updateLoadingStatus("Sinkronisasi Jadwal...");
             db.jadwal = await fetchData(CONFIG.sheets.jadwal);
             updateHomeSchedule();
@@ -920,7 +893,6 @@
 
             updateLoadingStatus("Siap!");
             lucide.createIcons();
-            isRefreshing = false;
         }
 
         function updateLoadingStatus(txt) {
@@ -1061,7 +1033,6 @@
                     `;
                 });
             }
-            lucide.createIcons(); // FIX: Ensure icons render in home schedule
         }
 
         function updateHomeTaskCount() {
@@ -1111,7 +1082,6 @@
                     });
                 }
             });
-            lucide.createIcons(); // FIX: Ensure icons render after jadwal list update
         }
 
         // --- PAGE: TUGAS ---
@@ -1142,7 +1112,6 @@
                     </div>
                 </div>`;
             });
-            lucide.createIcons(); // FIX: Ensure icons render after tugas list update
         }
 
         // --- PAGE: MATERI (FOLDERS & FILES) ---
@@ -1180,13 +1149,12 @@
                 uniqueMatkul.forEach(matkul => {
                     if (!matkul) return;
                     const count = filtered.filter(m => m['Mata Kuliah'] === matkul).length;
-                    // SECURITY FIX: Proper sanitization for both JS and HTML
-                    const safeMatkul = sanitizeForJS(matkul);
-                    const displayMatkul = sanitizeForHTML(matkul);
+                    // Escape single quotes for the function call
+                    const safeMatkul = matkul.replace(/'/g, "\\'");
                     html += `
                     <div class="folder-item" onclick="openMatkulFiles('${safeMatkul}', '${semester}')">
                         <div class="folder-icon-yellow"><i data-lucide="folder" width="28"></i></div>
-                        <div style="font-weight:700; font-size:0.85rem; line-height:1.3;">${displayMatkul}</div>
+                        <div style="font-weight:700; font-size:0.85rem; line-height:1.3;">${matkul}</div>
                         <div style="font-size:0.75rem; color:var(--text-muted);">${count} File</div>
                     </div>`;
                 });
@@ -1207,20 +1175,14 @@
             let html = `<div style="padding-bottom:10px; font-size:0.85rem; color:var(--text-muted);">${files.length} dokumen ditemukan</div>`;
 
             files.forEach(item => {
-                // SECURITY FIX: Sanitize semua parameter
-                const safeLink = sanitizeForJS(item['Link Akses']);
-                const safeTitle = sanitizeForJS(item['Nama Materi']);
-                const displayTitle = sanitizeForHTML(item['Nama Materi']);
-                const displayTipe = sanitizeForHTML(item.Tipe || 'Dokumen');
-
                 html += `
-                <div class="list-card" onclick="openDocPreview('${safeLink}', '${safeTitle}')">
+                <div class="list-card" onclick="openDocPreview('${item['Link Akses']}', '${item['Nama Materi']}')">
                     <div class="list-date-box" style="background:var(--bg-subtle); color:var(--primary);">
                         <i data-lucide="file-text" width="24"></i>
                     </div>
                     <div class="list-info">
-                        <h4 class="list-title" style="font-size:0.95rem;">${displayTitle}</h4>
-                        <p class="list-detail">${displayTipe}</p>
+                        <h4 class="list-title" style="font-size:0.95rem;">${item['Nama Materi']}</h4>
+                        <p class="list-detail">${item.Tipe || 'Dokumen'}</p>
                     </div>
                     <i data-lucide="chevron-right" width="20" style="color:var(--text-muted);"></i>
                 </div>`;
@@ -1240,24 +1202,18 @@
             }
             db.kelompok.forEach(item => {
                 if (!item['Mata Kuliah']) return;
-                // SECURITY FIX: Sanitize all displayed data
-                const safeMatkul = sanitizeForHTML(item['Mata Kuliah']);
-                const safeNama = sanitizeForHTML(item['Nama Kelompok']);
-                const safeAnggota = sanitizeForHTML(item['Daftar Anggota']);
-
                 container.innerHTML += `
                 <div class="list-card" style="flex-direction:column; gap:10px;">
                     <div style="display:flex; align-items:center; gap:8px;">
                         <i data-lucide="users" width="18" color="var(--primary)"></i>
-                        <h4 style="color:var(--primary); font-size:0.95rem; font-weight:700;">${safeMatkul}</h4>
+                        <h4 style="color:var(--primary); font-size:0.95rem; font-weight:700;">${item['Mata Kuliah']}</h4>
                     </div>
                     <div style="background:var(--bg-subtle); padding:12px; border-radius:10px;">
-                        <span style="font-weight:700; font-size:0.9rem; display:block; margin-bottom:6px;">${safeNama}</span>
-                        <p style="font-size:0.85rem; color:var(--text-muted); line-height:1.5; white-space: pre-line;">${safeAnggota}</p>
+                        <span style="font-weight:700; font-size:0.9rem; display:block; margin-bottom:6px;">${item['Nama Kelompok']}</span>
+                        <p style="font-size:0.85rem; color:var(--text-muted); line-height:1.5; white-space: pre-line;">${item['Daftar Anggota']}</p>
                     </div>
                 </div>`;
             });
-            lucide.createIcons(); // FIX: Ensure icons render after DOM update
         }
 
         // --- DOC VIEWER ---
@@ -1277,22 +1233,8 @@
         }
 
         function closeViewer() {
-            const modal = document.getElementById('modal-viewer');
-            const iframe = document.getElementById('viewer-iframe');
-
-            modal.classList.remove('active');
-
-            // MEMORY LEAK FIX: Stop iframe loading completely
-            iframe.src = 'about:blank';
-            // Force cleanup by removing and re-adding iframe (prevents memory leak)
-            setTimeout(() => {
-                const parent = iframe.parentNode;
-                const newIframe = iframe.cloneNode(false);
-                newIframe.id = 'viewer-iframe';
-                newIframe.className = 'viewer-iframe';
-                newIframe.setAttribute('allow', 'autoplay');
-                parent.replaceChild(newIframe, iframe);
-            }, 100);
+            document.getElementById('modal-viewer').classList.remove('active');
+            document.getElementById('viewer-iframe').src = 'about:blank';
         }
 
         // --- GESTURES (Simple Pull to Refresh) ---
