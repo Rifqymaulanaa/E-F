@@ -1284,6 +1284,16 @@
             ptrInd.classList.remove('visible');
             isPulling = false;
         });
+        // Register Service Worker untuk PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').then(reg => {
+                    console.log('PWA Ready!');
+                }).catch(err => {
+                    console.log('PWA Error', err);
+                });
+            });
+        }
 
     </script>
 </body>
